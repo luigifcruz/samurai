@@ -12,5 +12,5 @@ inc = include_directories('include')
 ## Modules
 subdir('include')
 subdir('src')
-subdir('python')
+#subdir('python')
 subdir('test')

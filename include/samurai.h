@@ -1,8 +1,6 @@
 #ifndef SAMURAI_H
 #define SAMURAI_H
 
-#include "lime/LimeSuite.h"
-
 #include <stdexcept>
 #include <iostream>
 #include <memory>
@@ -10,79 +8,85 @@
 #include <optional>
 #include <vector>
 
+#include <lime/LimeSuite.h>
+
+#include "types.h"
+
 namespace Samurai::LimeSDR {
 
-enum Mode : uint8_t {
-    MODE_NONE = 0 << 0,
-    MODE_RX   = 1 << 0,
-    MODE_TX   = 1 << 1,
-};
-
-struct State {
-    lms_device_t* device = nullptr;
-};
-
 class Channel {
-    private:
-        uint ch;
-        uint id;
-        Mode mode;
-        State& state;
-        bool native_mode;
-        lms_stream_t stream;
-
-        bool stream_created = false;
-        bool stream_running = false;
-
     public:
-        Channel(Mode, State&, uint, uint);
+        struct State {
+            uint id;
+            uint index;
+            lms_device_t* device;
+        };
+
+        struct Config {
+            struct Foundation {
+                Mode mode;
+                Format dataFmt;
+                bool calibrate;
+            };
+
+            Foundation fdn;
+            float frequency;
+            float manualGain;
+            bool enableAGC;
+        };
+
+        Channel(State, Config);
         ~Channel();
 
-        uint GetId();
-        uint GetChannel();
-        Mode GetMode();
-        bool IsRunning();
-
-        float SetFrequency(float);
-        float GetFrequency();
-
-        float SetGain(float);
-        float GetGain();
-
-        bool SetAGC(bool);
-        bool SetCache(bool);
+        void SetConfig(Config, bool force=false);
+        Config& GetConfig();
 
         int ReadStream(float*, size_t, uint);
         int WriteStream(float*, size_t, uint);
 
-        int setupStream();
-        int destroyStream();
-        int startStream();
-        int stopStream();
+        int _setupStream();
+        int _destroyStream();
+        int _startStream();
+        int _stopStream();
+        State& _getState();
+
+    private:
+        struct Stream {
+            lms_stream_t data;
+            bool created = false;
+            bool running = false;
+        };
+
+        State state;
+        Config config;
+        Stream stream;
+
+        bool getMode(Mode);
 };
 
 class Device {
-    private:
-        State state;
-        uint n_channels[8] = {};
-        std::vector<std::shared_ptr<Channel>> channels;
-
     public:
-        Device();
+        struct Config {
+            float sampleRate;
+        };
+
+        Device(Config);
         ~Device();
 
-        Channel& EnableChannel(Mode);
+        Channel& EnableChannel(Channel::Config);
         bool DisableChannel(Channel&);
 
-        int StartStreams();
-        int StopStreams();
-
-        int SetSamplerate(float);
+        int StartStream();
+        int StopStream();
 
         uint GetMaxNumberOfChannels(Mode);
         uint GetNumberOfChannels(Mode);
 
-        bool IsRunning();
+    private:
+        Config config;
+        uint n_channels[8] = {};
+        lms_device_t* device = nullptr;
+        std::vector<std::shared_ptr<Channel>> channels;
 };
 
 } // namespace Samurai::LimeSDR

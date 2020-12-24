@@ -1,132 +1,127 @@
 #include "samurai.h"
-#include <lime/LimeSuite.h>
 
 namespace Samurai::LimeSDR {
 
-Channel::Channel(Mode mode, State& state, uint ch, uint id) : ch(ch), id(id), state(state) {
-    switch(mode) {
-        case MODE_RX:
-            native_mode = LMS_CH_RX;
-            break;
-        case MODE_TX:
-            native_mode = LMS_CH_TX;
-            break;
-        default:
-            break;
-    }
-
-    stream.channel = ch;
-    stream.fifoSize = 1024*1024;
-    stream.throughputVsLatency = 0.5;
-    stream.isTx = native_mode;
-    stream.dataFmt = lms_stream_t::LMS_FMT_F32;
-
-    if (LMS_EnableChannel(state.device, native_mode, ch, true) != 0) {
+Channel::Channel(State ste, Config cfg) : state(ste), config(cfg) {
+    if (LMS_EnableChannel(state.device, getMode(config.fdn.mode), state.index, true) != 0) {
         std::cerr << "Can't enable channel." << std::endl;
-        throw std::runtime_error("CANT_MEET_EXPECTATIONS");
+        throw Exceptions::CANT_CONFIGURE_DEVICE;
     }
+
+    SetConfig(cfg, true);
 }
 
 Channel::~Channel() {
-    stopStream();
-    destroyStream();
+    _stopStream();
+    _destroyStream();
 
-    if (LMS_EnableChannel(state.device, native_mode, ch, false) != 0) {
+    if (LMS_EnableChannel(state.device, getMode(config.fdn.mode), state.index, false) != 0) {
         std::cerr << "Can't disable channel." << std::endl;
     }
 }
 
-int Channel::setupStream() {
-    if (stream_created || stream_running)
-        return -1;
+void Channel::SetConfig(Config cfg, bool force) {
+    if (cfg.enableAGC != config.enableAGC || force) {
 
-    int res = LMS_SetupStream(state.device, &stream);
-    if (res == 0)
-        stream_created = true;
-    return res;
+    }
+
+    if (cfg.frequency != config.frequency || force) {
+        LMS_SetLOFrequency(state.device, getMode(config.fdn.mode), state.index, cfg.frequency);
+    }
+
+    if (cfg.manualGain != config.manualGain || force) {
+
+    }
+
+    LMS_SetAntenna(state.device, getMode(config.fdn.mode), state.index, LMS_PATH_LNAH);
+
+    this->config = cfg;
 }
 
-int Channel::destroyStream() {
-    if (!stream_created || !stream_running)
-        return -1;
-
-    int res = LMS_DestroyStream(state.device, &stream);
-    if (res == 0)
-        stream_created = false;
-    return res;
-}
-
-int Channel::startStream() {
-    if (!stream_created || stream_running)
-        return -1;
-
-    int res = LMS_StartStream(&stream);
-    if (res == 0)
-        stream_running = true;
-    return res;
-}
-
-int Channel::stopStream() {
-    if (!stream_created || !stream_running)
-        return -1;
-
-    int res = LMS_StopStream(&stream);
-    if (res == 0)
-        stream_running = false;
-    return res;
+Channel::Config& Channel::GetConfig() {
+    return config;
 }
 
 int Channel::ReadStream(float* buffer, size_t size, uint timeout_ms) {
-    if (!stream_created || !stream_running)
+    if (!stream.created || !stream.running)
         return -1;
-    return LMS_RecvStream(&stream, buffer, size, nullptr, timeout_ms);
+    return LMS_RecvStream(&stream.data, buffer, size, nullptr, timeout_ms);
 }
 
 int Channel::WriteStream(float* buffer, size_t size, uint timeout_ms) {
-    if (!stream_created || !stream_running)
+    if (!stream.created || !stream.running)
         return -1;
-    return LMS_SendStream(&stream, buffer, size, nullptr, timeout_ms);
+    return LMS_SendStream(&stream.data, buffer, size, nullptr, timeout_ms);
 }
 
-float Channel::SetFrequency(float frequency) {
-    LMS_SetLOFrequency(state.device, native_mode, ch, frequency);
-    return GetFrequency();
+int Channel::_setupStream() {
+    if (stream.created || stream.running)
+        return -1;
+
+    stream.data.channel = state.index;
+    stream.data.fifoSize = 1024*1024;
+    stream.data.throughputVsLatency = 0.5;
+    stream.data.isTx = getMode(config.fdn.mode);
+
+    switch(config.fdn.dataFmt) {
+        case Format::F32:
+            stream.data.dataFmt = lms_stream_t::LMS_FMT_F32;
+            break;
+        case Format::I16:
+            stream.data.dataFmt = lms_stream_t::LMS_FMT_I16;
+            break;
+        case Format::I12:
+            stream.data.dataFmt = lms_stream_t::LMS_FMT_I12;
+            break;
+    }
+
+    int res = LMS_SetupStream(state.device, &stream.data);
+    if (res == 0)
+        stream.created = true;
+    return res;
 }
 
-float Channel::GetFrequency() {
-    double frequency;
-    LMS_GetLOFrequency(state.device, native_mode, ch, &frequency);
-    LMS_SetNormalizedGain(state.device, native_mode, ch, 0.7);
-    LMS_SetAntenna(state.device, native_mode, ch, LMS_PATH_LNAH);
-    return frequency;
+int Channel::_destroyStream() {
+    if (!stream.created || stream.running)
+        return -1;
+
+    int res = LMS_DestroyStream(state.device, &stream.data);
+    if (res == 0)
+        stream.created = false;
+    return res;
 }
 
-float Channel::SetGain(float gain) {
+int Channel::_startStream() {
+    if (!stream.created || stream.running)
+        return -1;
+
+    int res = LMS_StartStream(&stream.data);
+    if (res == 0)
+        stream.running = true;
+    return res;
 }
 
-float Channel::GetGain() {
+int Channel::_stopStream() {
+    if (!stream.created || !stream.running)
+        return -1;
+
+    int res = LMS_StopStream(&stream.data);
+    if (res == 0)
+        stream.running = false;
+    return res;
 }
 
-bool Channel::SetAGC(bool status) {
+Channel::State& Channel::_getState() {
+    return state;
 }
 
-bool Channel::SetCache(bool status) {
-}
-
-Mode Channel::GetMode() {
-    return mode;
-}
-
-bool Channel::IsRunning() {
-    return stream_created | stream_running;
-}
-
-uint Channel::GetId() {
-    return id;
-}
-
-uint Channel::GetChannel() {
-    return ch;
+bool Channel::getMode(Mode m) {
+    switch(m) {
+        case Mode::RX: return LMS_CH_RX;
+        case Mode::TX: return LMS_CH_TX;
+        default:
+            throw Exceptions::INVALID_TYPE;
+    }
 }
 
 } // namespace Samurai::LimeSDR
