@@ -1,11 +1,11 @@
 #include <samurai.h>
 
-using namespace Samurai::LimeSDR;
+using namespace Samurai;
 
 int main() {
     Device::Config deviceConfig{};
     deviceConfig.sampleRate = 10e6;
-    Device device(deviceConfig);
+    LimeSDR::Device device(deviceConfig);
 
     ChannelId rx;
     Channel::Config channelConfig{};

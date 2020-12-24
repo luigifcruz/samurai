@@ -6,7 +6,7 @@
 
 #include "tools/magic_enum.hpp"
 
-namespace Samurai::LimeSDR {
+namespace Samurai {
 
 template <typename E>
 constexpr auto to_underlying(E e) noexcept {
@@ -20,7 +20,7 @@ enum struct Mode {
 };
 
 enum struct Result {
-    SUCCESS,
+    SUCCESS = 0,
     ERROR,
     ERROR_DEVICE_NOT_READY,
     ERROR_CHANNEL_NOT_READY,
@@ -51,6 +51,6 @@ typedef uint ChannelId;
     } \
 }
 
-} // namespace Samurai::LimeSDR
+} // namespace Samurai
 
 #endif

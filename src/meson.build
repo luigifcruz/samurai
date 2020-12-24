@@ -1,6 +1,6 @@
 lib_src = files([
-    'device.cc',
-    'channel.cc',
+    'limesdr/device.cc',
+    'limesdr/channel.cc',
 ])
 
 lib_dep = [

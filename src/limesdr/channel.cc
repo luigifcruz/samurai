@@ -24,8 +24,8 @@ Channel::~Channel() {
     }
 }
 
-Result Channel::GetFoundation(Foundation* foundation) {
-    *foundation = this->fdn;
+Result Channel::GetFoundation(void* foundation) {
+    *(Channel::Foundation*)foundation = this->fdn;
     return Result::SUCCESS;
 }
 
@@ -157,3 +157,4 @@ bool Channel::getMode(Mode m) {
 }
 
 } // namespace Samurai::LimeSDR
+
