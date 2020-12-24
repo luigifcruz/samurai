@@ -2,32 +2,29 @@
 
 using namespace Samurai::LimeSDR;
 
-void CHECK_ERR(int res) {
-    if (res != 0) {
-        std::cout << "Error..." << std::endl;
-        exit(0);
-    }
-}
-
 int main() {
     Device::Config deviceConfig{};
     deviceConfig.sampleRate = 10e6;
     Device device(deviceConfig);
 
+    ChannelId rx;
     Channel::Config channelConfig{};
-    channelConfig.enableAGC = true;
-    channelConfig.frequency = 96.9e6;
-    channelConfig.fdn.mode = Mode::RX;
-    channelConfig.fdn.dataFmt = Format::F32;
-    auto& ch = device.EnableChannel(channelConfig);
+    channelConfig.mode = Mode::RX;
+    channelConfig.dataFmt = Format::F32;
+    ASSERT_SUCCESS(device.EnableChannel(channelConfig, &rx));
+
+    Channel::State channelState{};
+    channelState.enableAGC = true;
+    channelState.frequency = 96.9e6;
+    ASSERT_SUCCESS(device.UpdateChannel(rx, channelState));
 
     {
-        CHECK_ERR(device.StartStream());
+        ASSERT_SUCCESS(device.StartStream());
 
         float buffer[2048];
-        ch.ReadStream((float*)&buffer, 1024, 1000);
+        device.ReadStream(rx, (float*)&buffer, 1024, 1000);
         printf("%lf\n", buffer[0]);
 
-        CHECK_ERR(device.StopStream());
+        ASSERT_SUCCESS(device.StopStream());
     }
 }

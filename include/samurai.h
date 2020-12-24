@@ -16,39 +16,40 @@ namespace Samurai::LimeSDR {
 
 class Channel {
     public:
-        struct State {
+        struct Foundation {
             uint id;
             uint index;
             lms_device_t* device;
         };
 
         struct Config {
-            struct Foundation {
-                Mode mode;
-                Format dataFmt;
-                bool calibrate;
-            };
+            Mode mode;
+            Format dataFmt;
+            bool calibrate;
+        };
 
-            Foundation fdn;
+        struct State {
             float frequency;
             float manualGain;
             bool enableAGC;
         };
 
-        Channel(State, Config);
+        Channel(void*, Config);
         ~Channel();
 
-        void SetConfig(Config, bool force=false);
-        Config& GetConfig();
+        Result GetFoundation(Foundation*);
+        Result GetConfig(Config*);
+        Result GetState(State*);
 
-        int ReadStream(float*, size_t, uint);
-        int WriteStream(float*, size_t, uint);
+        Result Update(State, bool force=false);
 
-        int _setupStream();
-        int _destroyStream();
-        int _startStream();
-        int _stopStream();
-        State& _getState();
+        Result ReadStream(void*, size_t, uint);
+        Result WriteStream(void*, size_t, uint);
+
+        Result SetupStream();
+        Result DestroyStream();
+        Result StartStream();
+        Result StopStream();
 
     private:
         struct Stream {
@@ -59,10 +60,14 @@ class Channel {
 
         State state;
         Config config;
+        Foundation fdn;
         Stream stream;
+
+        bool configured;
 
         bool getMode(Mode);
 };
+
 
 class Device {
     public:
@@ -73,11 +78,15 @@ class Device {
         Device(Config);
         ~Device();
 
-        Channel& EnableChannel(Channel::Config);
-        bool DisableChannel(Channel&);
+        Result EnableChannel(Channel::Config, ChannelId*);
+        Result UpdateChannel(ChannelId, Channel::State);
+        Result DisableChannel(ChannelId);
 
-        int StartStream();
-        int StopStream();
+        Result StartStream();
+        Result StopStream();
+
+        Result ReadStream(ChannelId, void*, size_t, uint timeout_ms = 100);
+        Result WriteStream(ChannelId, void*, size_t, uint timeout_ms = 100);
 
         uint GetMaxNumberOfChannels(Mode);
         uint GetNumberOfChannels(Mode);
@@ -86,7 +95,10 @@ class Device {
         Config config;
         uint n_channels[8] = {};
         lms_device_t* device = nullptr;
+
         std::vector<std::shared_ptr<Channel>> channels;
+
+        Channel::State getChannelState(ChannelId);
 };
 
 } // namespace Samurai::LimeSDR

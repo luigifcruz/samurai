@@ -7,30 +7,25 @@ Device::Device(Device::Config cfg) : config(cfg) {
     lms_info_str_t devices[16];
 
     if ((n = LMS_GetDeviceList(devices)) < 0) {
-        std::cerr << "No LimeSDR devices found." << std::endl;
-        throw Exceptions::CANT_FIND_DEVICE;
+        ASSERT_SUCCESS(Result::ERROR_FAILED_TO_FIND_DEVICE);
     }
 
     if (LMS_Open(&device, devices[0], nullptr)) {
-        std::cerr << "Can't open LimeSDR device." << std::endl;
-        throw Exceptions::CANT_OPEN_DEVICE;
+        ASSERT_SUCCESS(Result::ERROR_FAILED_TO_OPEN_DEVICE);
     }
 
     if (LMS_Init(device) != 0) {
-        std::cerr << "Can't init LimeSDR device" << std::endl;
-        throw Exceptions::CANT_CONFIGURE_DEVICE;
+        ASSERT_SUCCESS(Result::ERROR_FAILED_TO_INIT_DEVICE);
     }
 
     if ((n_channels[to_underlying(Mode::RX)] = LMS_GetNumChannels(device, LMS_CH_RX)) < 0) {
-        std::cerr << "Can't get number of RX channels." << std::endl;
         LMS_Close(device);
-        throw Exceptions::CANT_FETCH_DATA;
+        ASSERT_SUCCESS(Result::ERROR_FAILED_TO_FETCH_DATA);
     }
 
     if ((n_channels[to_underlying(Mode::TX)] = LMS_GetNumChannels(device, LMS_CH_TX)) < 0) {
-        std::cerr << "Can't get number of TX channels." << std::endl;
         LMS_Close(device);
-        throw Exceptions::CANT_FETCH_DATA;
+        ASSERT_SUCCESS(Result::ERROR_FAILED_TO_FETCH_DATA);
     }
 }
 
@@ -42,67 +37,91 @@ Device::~Device() {
     }
 }
 
-Channel& Device::EnableChannel(Channel::Config cfg) {
-    if (GetNumberOfChannels(cfg.fdn.mode) >= n_channels[to_underlying(cfg.fdn.mode)]) {
+Result Device::EnableChannel(Channel::Config cfg, ChannelId* id) {
+    if (GetNumberOfChannels(cfg.mode) >= n_channels[to_underlying(cfg.mode)]) {
         std::cerr << "Maximum number of channels was exceeded." << std::endl;
-        throw Exceptions::CANT_CONFIGURE_DEVICE;
+        return Result::ERROR_MAX_NUMBER_OF_CHANNELS_REACHED;
     }
 
-    Channel::State channelState{};
-    channelState.device = device;
-    channelState.index = GetNumberOfChannels(cfg.fdn.mode);
-    channelState.id = channels.size();
-    auto channel = std::make_shared<Channel>(channelState, cfg);
+    Channel::Foundation channelFoundation{};
+    channelFoundation.device = device;
+    channelFoundation.index = GetNumberOfChannels(cfg.mode);
+    channelFoundation.id = channels.size();
 
+    auto channel = std::make_shared<Channel>((void*)&channelFoundation, cfg);
     channels.push_back(channel);
-    return *channel;
+    *id = channels.size() - 1;
+
+    return Result::SUCCESS;
 }
 
-bool Device::DisableChannel(Channel& channel) {
-    if (channels.size() >= channel._getState().id) {
-        channels.erase(channels.begin() + channel._getState().id);
-        return true;
-    }
-    return false;
+Result Device::UpdateChannel(ChannelId id, Channel::State state) {
+    if (channels.size() <= id)
+        return Result::ERROR_FAILED_TO_FIND_CHANNEL;
+
+    return channels.at(id)->Update(state);
 }
 
-int Device::StartStream() {
-    int err = 0;
+Result Device::DisableChannel(ChannelId id) {
+    if (channels.size() <= id)
+        return Result::ERROR_FAILED_TO_FIND_CHANNEL;
 
-    err = LMS_SetSampleRate(device, config.sampleRate, 1);
-    if (err != 0) goto exception;
+    channels.erase(channels.begin() + id);
+    return Result::SUCCESS;
+}
 
-    for (const auto& channel : channels) {
-        err = channel->_setupStream();
-        if (err != 0) goto exception;
+Result Device::StartStream() {
+    Result err = Result::SUCCESS;
+
+    int res;
+    if (( res = LMS_SetSampleRate(device, config.sampleRate, 1)) != 0) {
+        err = Result::ERROR;
+        goto exception;
     }
 
     for (const auto& channel : channels) {
-        err = channel->_startStream();
-        if (err != 0) goto exception;
+        err = channel->SetupStream();
+        if (err != Result::SUCCESS) goto exception;
+    }
+
+    for (const auto& channel : channels) {
+        err = channel->StartStream();
+        if (err != Result::SUCCESS) goto exception;
     }
 
 exception:
-
     return err;
 }
 
-int Device::StopStream() {
-    int err = 0;
+Result Device::StopStream() {
+    Result err = Result::SUCCESS;
 
     for (const auto& channel : channels) {
-        err = channel->_stopStream();
-        if (err != 0) goto exception;
+        err = channel->StopStream();
+        if (err != Result::SUCCESS) goto exception;
     }
 
     for (const auto& channel : channels) {
-        err = channel->_destroyStream();
-        if (err != 0) goto exception;
+        err = channel->DestroyStream();
+        if (err != Result::SUCCESS) goto exception;
     }
 
 exception:
-
     return err;
+}
+
+Result Device::ReadStream(ChannelId id, void* buffer, size_t size, uint timeout_ms) {
+    if (channels.size() <= id)
+        return Result::ERROR_FAILED_TO_FIND_CHANNEL;
+
+    return channels.at(id)->ReadStream(buffer, size, timeout_ms);
+}
+
+Result Device::WriteStream(ChannelId id, void* buffer, size_t size, uint timeout_ms) {
+    if (channels.size() <= id)
+        return Result::ERROR_FAILED_TO_FIND_CHANNEL;
+
+    return channels.at(id)->WriteStream(buffer, size, timeout_ms);
 }
 
 uint Device::GetNumberOfChannels(Mode mode) {
@@ -111,14 +130,23 @@ uint Device::GetNumberOfChannels(Mode mode) {
 
     uint matches = 0;
     for (const auto& channel : channels) {
-        if (channel->GetConfig().fdn.mode == mode)
+        Channel::Config config;
+        ASSERT_SUCCESS(channel->GetConfig(&config));
+        if (config.mode == mode) {
             matches += 1;
+        }
     }
     return matches;
 }
 
 uint Device::GetMaxNumberOfChannels(Mode mode) {
     return n_channels[to_underlying(mode)];
+}
+
+Channel::State Device::getChannelState(ChannelId id) {
+    Channel::State state;
+    ASSERT_SUCCESS(channels.at(id)->GetState(&state));
+    return state;
 }
 
 } // namespace Samurai::LimeSDR
