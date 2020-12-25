@@ -20,6 +20,7 @@ class Device {
         };
 
         virtual ~Device() = default;
+        virtual Result Enable(Config) = 0;
 
         virtual Result EnableChannel(Channel::Config, ChannelId*) = 0;
         virtual Result UpdateChannel(ChannelId, Channel::State) = 0;
@@ -31,6 +32,7 @@ class Device {
         virtual Result ReadStream(ChannelId, void*, size_t, uint timeout_ms = 100) = 0;
         virtual Result WriteStream(ChannelId, void*, size_t, uint timeout_ms = 100) = 0;
 
+        virtual DeviceId GetDeviceType() = 0;
         virtual uint GetMaxNumberOfChannels(Mode) = 0;
         virtual uint GetNumberOfChannels(Mode) = 0;
 };

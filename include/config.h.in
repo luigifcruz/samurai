@@ -1,0 +1,5 @@
+#define SAMURAI_VERSION_STR "@version@"
+
+#mesondefine SAMURAI_LIMESDR_ENABLED
+#mesondefine SAMURAI_ENABLE_AIRSPYONE
+#mesondefine SAMURAI_ENABLE_BLADERF

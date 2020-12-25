@@ -11,15 +11,15 @@
 #include <lime/LimeSuite.h>
 
 #include "base/device.h"
-#include "base/channel.h"
 #include "limesdr/channel.h"
 
 namespace Samurai::LimeSDR {
 
 class Device : public Samurai::Device {
     public:
-        Device(Device::Config);
+        Device();
         ~Device();
+        Result Enable(Config);
 
         Result EnableChannel(Channel::Config, ChannelId*);
         Result UpdateChannel(ChannelId, Channel::State);
@@ -31,10 +31,12 @@ class Device : public Samurai::Device {
         Result ReadStream(ChannelId, void*, size_t, uint timeout_ms = 100);
         Result WriteStream(ChannelId, void*, size_t, uint timeout_ms = 100);
 
+        DeviceId GetDeviceType();
         uint GetMaxNumberOfChannels(Mode);
         uint GetNumberOfChannels(Mode);
 
     private:
+        bool enabled;
         Config config;
         uint n_channels[8] = {};
         lms_device_t* device = nullptr;

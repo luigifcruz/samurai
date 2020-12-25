@@ -8,8 +8,8 @@ namespace py = pybind11;
 
 inline void init_limesdr_device(py::module &m) {
     py::class_<Device>(m, "Device")
-        .def(py::init([](Device::Config config) {
-            return std::unique_ptr<Device>(new Device(config));
+        .def(py::init([]() {
+            return std::unique_ptr<Device>(new Device());
         }))
         .def("EnableChannel", &Device::EnableChannel)
         .def("UpdateChannel", &Device::UpdateChannel)

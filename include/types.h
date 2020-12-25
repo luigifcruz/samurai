@@ -33,12 +33,17 @@ enum struct Result {
     ERROR_FAILED_TO_FETCH_DATA,
     ERROR_INVALID_DATA_TYPE,
     ERROR_DEVICE_API,
+    ERROR_DEVICE_NOT_SUPPORTED,
 };
 
 enum struct Format {
     F32,
     I16,
     I12,
+};
+
+enum struct DeviceId {
+    LimeSDR = 1 << 0,
 };
 
 typedef uint ChannelId;
