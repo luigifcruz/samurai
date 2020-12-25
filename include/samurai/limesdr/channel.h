@@ -10,7 +10,7 @@
 
 #include <lime/LimeSuite.h>
 
-#include "base/channel.h"
+#include "samurai/base/channel.h"
 
 namespace Samurai::LimeSDR {
 

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <type_traits>
 
-#include "tools/magic_enum.hpp"
+#include "samurai/tools/magic_enum.hpp"
 
 namespace Samurai {
 

@@ -1,4 +1,4 @@
-#include "samurai.h"
+#include "samurai/limesdr/device.h"
 
 namespace Samurai::LimeSDR {
 
@@ -42,10 +42,14 @@ Result Device::Enable(Config cfg) {
         return Result::ERROR_FAILED_TO_FETCH_DATA;
     }
 
+    this->enabled = true;
     return Result::SUCCESS;
 }
 
 Result Device::EnableChannel(Channel::Config cfg, ChannelId* id) {
+    if (!enabled)
+        return Result::ERROR_DEVICE_NOT_READY;
+
     if (GetNumberOfChannels(cfg.mode) >= n_channels[to_underlying(cfg.mode)]) {
         std::cerr << "Maximum number of channels was exceeded." << std::endl;
         return Result::ERROR_MAX_NUMBER_OF_CHANNELS_REACHED;
@@ -64,6 +68,9 @@ Result Device::EnableChannel(Channel::Config cfg, ChannelId* id) {
 }
 
 Result Device::UpdateChannel(ChannelId id, Channel::State state) {
+    if (!enabled)
+        return Result::ERROR_DEVICE_NOT_READY;
+
     if (channels.size() <= id)
         return Result::ERROR_FAILED_TO_FIND_CHANNEL;
 
@@ -71,6 +78,9 @@ Result Device::UpdateChannel(ChannelId id, Channel::State state) {
 }
 
 Result Device::DisableChannel(ChannelId id) {
+    if (!enabled)
+        return Result::ERROR_DEVICE_NOT_READY;
+
     if (channels.size() <= id)
         return Result::ERROR_FAILED_TO_FIND_CHANNEL;
 
@@ -79,6 +89,9 @@ Result Device::DisableChannel(ChannelId id) {
 }
 
 Result Device::StartStream() {
+    if (!enabled)
+        return Result::ERROR_DEVICE_NOT_READY;
+
     Result err = Result::SUCCESS;
 
     int res;
@@ -102,6 +115,9 @@ exception:
 }
 
 Result Device::StopStream() {
+    if (!enabled)
+        return Result::ERROR_DEVICE_NOT_READY;
+
     Result err = Result::SUCCESS;
 
     for (const auto& channel : channels) {

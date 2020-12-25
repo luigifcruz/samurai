@@ -1,4 +1,4 @@
-#include <samurai.h>
+#include <samurai/samurai.h>
 
 using namespace Samurai;
 

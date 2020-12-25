@@ -10,8 +10,8 @@
 
 #include <lime/LimeSuite.h>
 
-#include "base/device.h"
-#include "limesdr/channel.h"
+#include "samurai/base/device.h"
+#include "samurai/limesdr/channel.h"
 
 namespace Samurai::LimeSDR {
 

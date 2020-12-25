@@ -1,9 +1,8 @@
-#include <samurai.h>
+#include <samurai/samurai.h>
 
 #include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
 
-using namespace Samurai::LimeSDR;
+using namespace Samurai;
 namespace py = pybind11;
 
 inline void init_types_mode(py::module &m) {
@@ -37,8 +36,17 @@ inline void init_types_format(py::module &m) {
         .value("I12", Format::I12);
 }
 
+inline void init_types_deviceid(py::module &m) {
+    py::enum_<DeviceId>(m, "DeviceId")
+        #ifdef SAMURAI_LIMESDR_ENABLED
+        .value("LimeSDR", DeviceId::LimeSDR)
+        #endif
+        ;
+}
+
 inline void init_types(py::module &m) {
     init_types_mode(m);
     init_types_result(m);
     init_types_format(m);
+    init_types_deviceid(m);
 }

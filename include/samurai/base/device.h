@@ -8,15 +8,15 @@
 #include <optional>
 #include <vector>
 
-#include "types.h"
-#include "channel.h"
+#include "samurai/types.h"
+#include "samurai/base/channel.h"
 
 namespace Samurai {
 
 class Device {
     public:
         struct Config {
-            float sampleRate;
+            float sampleRate = 10e6;
         };
 
         virtual ~Device() = default;
@@ -40,4 +40,3 @@ class Device {
 } // namespace Samurai
 
 #endif
-

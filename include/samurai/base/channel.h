@@ -8,22 +8,22 @@
 #include <optional>
 #include <vector>
 
-#include "types.h"
+#include "samurai/types.h"
 
 namespace Samurai {
 
 class Channel {
     public:
         struct Config {
-            Mode mode;
-            Format dataFmt;
-            bool calibrate;
+            Mode mode = Mode::RX;
+            Format dataFmt = Format::F32;
+            bool calibrate = true;
         };
 
         struct State {
-            float frequency;
-            float manualGain;
-            bool enableAGC;
+            float frequency = 96.9e6;
+            float manualGain = 0;
+            bool enableAGC = true;
         };
 
         virtual ~Channel() = default;
@@ -46,4 +46,3 @@ class Channel {
 } // namespace Samurai
 
 #endif
-

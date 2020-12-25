@@ -1,4 +1,4 @@
-#include "samurai.h"
+#include "samurai/limesdr/channel.h"
 
 namespace Samurai::LimeSDR {
 
