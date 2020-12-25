@@ -64,7 +64,7 @@ Result Channel::ReadStream(void* buffer, size_t size, uint timeout_ms) {
     if (!stream.created || !stream.running)
         return Result::ERROR_CHANNEL_NOT_READY;
 
-    if (LMS_RecvStream(&stream.data, buffer, size, nullptr, timeout_ms) != 0) {
+    if (LMS_RecvStream(&stream.data, buffer, size, nullptr, timeout_ms) == -1) {
         return Result::ERROR_DEVICE_API;
     }
 
@@ -75,7 +75,7 @@ Result Channel::WriteStream(void* buffer, size_t size, uint timeout_ms) {
     if (!stream.created || !stream.running)
         return Result::ERROR_CHANNEL_NOT_READY;
 
-    if (LMS_SendStream(&stream.data, buffer, size, nullptr, timeout_ms) != 0) {
+    if (LMS_SendStream(&stream.data, buffer, size, nullptr, timeout_ms) == -1) {
         return Result::ERROR_DEVICE_API;
     }
 
