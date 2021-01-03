@@ -24,10 +24,18 @@ inline void init_device_class(py::module &m) {
         .def("GetMaxNumberOfChannels", &Device::GetMaxNumberOfChannels)
         .def("GetNumberOfChannels", &Device::GetNumberOfChannels)
         .def("__enter__", [](Device& self) {
-            self.StartStream();
+            ASSERT_SUCCESS(self.StartStream());
         })
         .def("__exit__", [](Device& self, void*, void*, void*) {
-            self.StopStream();
+            ASSERT_SUCCESS(self.StopStream());
+        })
+        .def("WriteStream", [](Device& self, ChannelId id, py::array_t<std::complex<float>> i, uint t) {
+            py::buffer_info buffer = i.request(true);
+            return self.WriteStream(id, static_cast<float*>(buffer.ptr), buffer.size, t);
+        })
+        .def("WriteStream", [](Device& self, ChannelId id, py::array_t<float> i, uint t) {
+            py::buffer_info buffer = i.request(true);
+            return self.WriteStream(id, static_cast<float*>(buffer.ptr), buffer.size / 2, t);
         })
         .def("ReadStream", [](Device& self, ChannelId id, py::array_t<std::complex<float>> i, uint t) {
             py::buffer_info buffer = i.request(true);

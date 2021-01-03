@@ -7,11 +7,19 @@ conf_data = configuration_data()
 lib_src = []
 lib_dep = []
 
+# Load Radios
+subdir('src/limesdr')
+
 # Includes
-inc = include_directories('include')
+inc = [
+  include_directories('include'),
+  include_directories('.')
+]
 
 # Gather Files
-subdir('src')
 subdir('include')
+subdir('src')
+
+# Build Projects
 subdir('python')
 subdir('test')

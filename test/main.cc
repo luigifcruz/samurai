@@ -24,7 +24,7 @@ int main() {
         ASSERT_SUCCESS(device->StartStream());
 
         float buffer[2048];
-        device->ReadStream(rx, (float*)&buffer, 1024, 1000);
+        ASSERT_SUCCESS(device->ReadStream(rx, (float*)&buffer, 1024, 1000));
         printf("%lf\n", buffer[0]);
 
         ASSERT_SUCCESS(device->StopStream());

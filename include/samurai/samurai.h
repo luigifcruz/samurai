@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "samurai/types.h"
-#include "samurai/config.h"
+#include "config.h"
 
 #include "samurai/base/device.h"
 #include "samurai/base/channel.h"

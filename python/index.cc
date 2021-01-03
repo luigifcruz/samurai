@@ -7,6 +7,10 @@
 using namespace Samurai;
 
 PYBIND11_MODULE(samurai, m) {
+    m.def("ASSERT_SUCCESS", [](Result result) {
+        ASSERT_SUCCESS(result);
+    });
+
     init_types(m);
     init_device(m);
     init_channel(m);
