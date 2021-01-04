@@ -1,6 +1,6 @@
-#include "samurai/limesdr/device.hpp"
+#include "samurai/airspy/device.hpp"
 
-namespace Samurai::LimeSDR {
+namespace Samurai::Airspy {
 
 Device::Device() {
     enabled = false;
@@ -10,37 +10,19 @@ Device::~Device() {
     channels.clear();
 
     if (device != nullptr) {
-        LMS_Close(device);
+        airspy_close(device);
     }
 }
 
 Result Device::Enable(Config cfg) {
     this->config = cfg;
 
-    int n = 0;
-    lms_info_str_t devices[16];
-
-    if ((n = LMS_GetDeviceList(devices)) < 0) {
+    if (airspy_open(&device) != AIRSPY_SUCCESS) {
         return Result::ERROR_FAILED_TO_FIND_DEVICE;
     }
 
-    if (LMS_Open(&device, devices[0], nullptr)) {
-        return Result::ERROR_FAILED_TO_OPEN_DEVICE;
-    }
-
-    if (LMS_Init(device) != 0) {
-        return Result::ERROR_FAILED_TO_INIT_DEVICE;
-    }
-
-    if ((n_channels[to_underlying(Mode::RX)] = LMS_GetNumChannels(device, LMS_CH_RX)) < 0) {
-        LMS_Close(device);
-        return Result::ERROR_FAILED_TO_FETCH_DATA;
-    }
-
-    if ((n_channels[to_underlying(Mode::TX)] = LMS_GetNumChannels(device, LMS_CH_TX)) < 0) {
-        LMS_Close(device);
-        return Result::ERROR_FAILED_TO_FETCH_DATA;
-    }
+    n_channels[to_underlying(Mode::RX)] = 1;
+    n_channels[to_underlying(Mode::TX)] = 0;
 
     this->enabled = true;
     return Result::SUCCESS;
@@ -94,9 +76,8 @@ Result Device::StartStream() {
 
     Result err = Result::SUCCESS;
 
-    int res;
-    if (( res = LMS_SetSampleRate(device, config.sampleRate, 1)) != 0) {
-        err = Result::ERROR;
+    if (airspy_set_samplerate(device, config.sampleRate) != AIRSPY_SUCCESS) {
+        err = Result::ERROR_FAILED_TO_CONFIGURE_DEVICE;
         goto exception;
     }
 
@@ -177,4 +158,4 @@ Channel::State Device::getChannelState(ChannelId id) {
     return state;
 }
 
-} // namespace Samurai::LimeSDR
+} // namespace Samurai::Airspy

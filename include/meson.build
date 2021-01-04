@@ -1,7 +1,7 @@
 # Generate Configuration Header
 conf_data.set('version', meson.project_version())
-configure_file(input : 'config.h.in',
-               output : 'config.h',
+configure_file(input : 'config.hpp.in',
+               output : 'config.hpp',
                configuration : conf_data,
                install : true,
                install_dir : get_option('includedir') + '/samurai')

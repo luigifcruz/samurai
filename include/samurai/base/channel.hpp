@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-#include "samurai/types.h"
+#include "samurai/types.hpp"
 
 namespace Samurai {
 

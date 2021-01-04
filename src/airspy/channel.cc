@@ -1,40 +1,42 @@
-#include "samurai/limesdr/channel.hpp"
+#include "samurai/airspy/channel.hpp"
+#include "samurai/cbuffer.hpp"
+#include <unistd.h>
 
-namespace Samurai::LimeSDR {
+namespace Samurai::Airspy {
 
 Channel::Channel(void* fdn_ptr, Config cfg) {
     this->fdn = *(Channel::Foundation*)fdn_ptr;
     this->config = cfg;
-
-    if (LMS_EnableChannel(fdn.device, getMode(config.mode), fdn.index, true) != 0) {
-        std::cerr << "Can't enable channel." << std::endl;
-        throw Result::ERROR_FAILED_TO_CONFIGURE_DEVICE;
-    }
 }
 
 Channel::~Channel() {
     StopStream();
-    DestroyStream();
-
-    if (LMS_EnableChannel(fdn.device, getMode(config.mode), fdn.index, false) != 0) {
-        std::cerr << "Can't disable channel." << std::endl;
-    }
 }
 
 Result Channel::Update(State s, bool force) {
     force = force || !configured;
 
     if (s.enableAGC != state.enableAGC || force) {
-
+        int res = 0;
+        res += airspy_set_lna_agc(fdn.device, s.enableAGC ? 1 : 0);
+        res += airspy_set_mixer_agc(fdn.device, s.enableAGC ? 1 : 0);
+        if (res != 0) {
+            return Result::ERROR_FAILED_TO_CONFIGURE_DEVICE;
+        }
     }
 
     if (s.frequency != state.frequency || force) {
-        LMS_SetLOFrequency(fdn.device, getMode(config.mode), fdn.index, state.frequency);
+        if (airspy_set_freq(fdn.device, static_cast<uint32_t>(state.frequency)) != AIRSPY_SUCCESS) {
+            return Result::ERROR_FAILED_TO_CONFIGURE_DEVICE;
+        }
     }
 
-    if (s.manualGain != state.manualGain || force) {
+    if ((s.manualGain != state.manualGain && !s.enableAGC) || force) {
 
     }
+
+    sleep(1);
+    this->cb->Reset();
 
     this->configured = true;
     this->state = s;
@@ -46,9 +48,12 @@ Result Channel::ReadStream(void* buffer, size_t size, uint timeout_ms) {
     if (!stream.created || !stream.running)
         return Result::ERROR_CHANNEL_NOT_READY;
 
-    if (LMS_RecvStream(&stream.data, buffer, size, nullptr, timeout_ms) == -1) {
-        return Result::ERROR_DEVICE_API;
-    }
+    if (cb->Capacity() < size*2)
+        return Result::ERROR;
+
+    while(cb->Occupancy() < size*2) usleep(1000);
+
+    cb->Get((float*)buffer, size*2);
 
     return Result::SUCCESS;
 }
@@ -56,38 +61,36 @@ Result Channel::ReadStream(void* buffer, size_t size, uint timeout_ms) {
 Result Channel::WriteStream(void* buffer, size_t size, uint timeout_ms) {
     if (!stream.created || !stream.running)
         return Result::ERROR_CHANNEL_NOT_READY;
+    return Result::ERROR;
+}
 
-    if (LMS_SendStream(&stream.data, buffer, size, nullptr, timeout_ms) == -1) {
-        return Result::ERROR_DEVICE_API;
-    }
-
-    return Result::SUCCESS;
+int Channel::readStream(airspy_transfer_t* transfer) {
+    Channel* ctx = (Channel*)transfer->ctx;
+    ctx->cb->Put((float*)transfer->samples, transfer->sample_count*2);
+    return 0;
 }
 
 Result Channel::SetupStream() {
     if (stream.created || stream.running || !configured)
         return Result::ERROR_CHANNEL_NOT_READY;
 
-    stream.data.channel = fdn.index;
-    stream.data.fifoSize = 1024*1024;
-    stream.data.throughputVsLatency = 0.5;
-    stream.data.isTx = getMode(config.mode);
-
+    enum airspy_sample_type dtype;
     switch(config.dataFmt) {
         case Format::F32:
-            stream.data.dataFmt = lms_stream_t::LMS_FMT_F32;
+            dtype = AIRSPY_SAMPLE_FLOAT32_IQ;
             break;
         case Format::I16:
-            stream.data.dataFmt = lms_stream_t::LMS_FMT_I16;
+            dtype = AIRSPY_SAMPLE_INT16_IQ;
             break;
         case Format::I12:
-            stream.data.dataFmt = lms_stream_t::LMS_FMT_I12;
-            break;
+            return Result::ERROR_FORMAT_NOT_SUPPORTED;
     }
 
-    if (LMS_SetupStream(fdn.device, &stream.data) != 0) {
-        return Result::ERROR_DEVICE_API;
+    if (airspy_set_sample_type(fdn.device, dtype) != AIRSPY_SUCCESS) {
+        return Result::ERROR_FORMAT_NOT_SUPPORTED;
     }
+
+    cb = new CircularBuffer<float>(1024*1024*2);
 
     stream.created = true;
     return Result::SUCCESS;
@@ -97,10 +100,6 @@ Result Channel::DestroyStream() {
     if (!stream.created || stream.running)
         return Result::ERROR_CHANNEL_NOT_READY;
 
-    if (LMS_DestroyStream(fdn.device, &stream.data) != 0) {
-        return Result::ERROR_DEVICE_API;
-    }
-
     stream.created = false;
     return Result::SUCCESS;
 }
@@ -109,9 +108,11 @@ Result Channel::StartStream() {
     if (!stream.created || stream.running)
         return Result::ERROR_CHANNEL_NOT_READY;
 
-    if (LMS_StartStream(&stream.data) != 0) {
+    int result = airspy_start_rx(fdn.device, this->readStream, this);
+    if (result != AIRSPY_SUCCESS) {
         return Result::ERROR_DEVICE_API;
     }
+
 
     stream.running = true;
     return Result::SUCCESS;
@@ -121,21 +122,12 @@ Result Channel::StopStream() {
     if (!stream.created || !stream.running)
         return Result::ERROR_CHANNEL_NOT_READY;
 
-    if (LMS_StopStream(&stream.data) != 0) {
+    if (airspy_stop_rx(fdn.device) != AIRSPY_SUCCESS) {
         return Result::ERROR_DEVICE_API;
     }
 
     stream.running = false;
     return Result::SUCCESS;
-}
-
-bool Channel::getMode(Mode m) {
-    switch(m) {
-        case Mode::RX: return LMS_CH_RX;
-        case Mode::TX: return LMS_CH_TX;
-        default:
-            throw Result::ERROR_INVALID_DATA_TYPE;
-    }
 }
 
 Result Channel::GetFoundation(void* foundation) {
@@ -153,4 +145,4 @@ Result Channel::GetState(State* state) {
     return Result::SUCCESS;
 }
 
-} // namespace Samurai::LimeSDR
+} // namespace Samurai::Airspy

@@ -1,9 +1,9 @@
-#include <samurai/samurai.h>
+#include <samurai/samurai.hpp>
 
 using namespace Samurai;
 
 int main() {
-    auto device = GetDeviceHandler(DeviceId::LimeSDR);
+    auto device = GetDeviceHandler(DeviceId::Airspy);
 
     Device::Config deviceConfig{};
     deviceConfig.sampleRate = 10e6;

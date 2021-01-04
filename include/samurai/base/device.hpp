@@ -8,8 +8,8 @@
 #include <optional>
 #include <vector>
 
-#include "samurai/types.h"
-#include "samurai/base/channel.h"
+#include "samurai/types.hpp"
+#include "samurai/base/channel.hpp"
 
 namespace Samurai {
 

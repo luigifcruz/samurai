@@ -34,6 +34,8 @@ enum struct Result {
     ERROR_INVALID_DATA_TYPE,
     ERROR_DEVICE_API,
     ERROR_DEVICE_NOT_SUPPORTED,
+    ERROR_FORMAT_NOT_SUPPORTED,
+    ERROR_CANT_ALLOCATE_MEMORY,
 };
 
 enum struct Format {
@@ -44,6 +46,7 @@ enum struct Format {
 
 enum struct DeviceId {
     LimeSDR = 1 << 0,
+    Airspy  = 1 << 1,
 };
 
 typedef uint ChannelId;

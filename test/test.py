@@ -3,10 +3,10 @@ import numpy as np
 
 from samurai import ASSERT_SUCCESS
 
-device = s.Device(s.DeviceId.LimeSDR)
+device = s.Device(s.DeviceId.Airspy)
 
 deviceConfig = s.DeviceConfig()
-deviceConfig.sampleRate = 20e6
+deviceConfig.sampleRate = 10e6
 ASSERT_SUCCESS(device.Enable(deviceConfig))
 
 channelConfig = s.ChannelConfig()
@@ -23,4 +23,4 @@ ASSERT_SUCCESS(device.UpdateChannel(rx, channelState))
 with device:
     buffer = np.zeros(2048, dtype=np.complex64)
     ASSERT_SUCCESS(device.ReadStream(rx, buffer, 100))
-    print(buffer[-8:])
+    print(buffer)

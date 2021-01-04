@@ -1,5 +1,5 @@
-#ifndef SAMURAI_LIMESDR_DEVICE_H
-#define SAMURAI_LIMESDR_DEVICE_H
+#ifndef SAMURAI_AIRSPYONE_DEVICE_H
+#define SAMURAI_AIRSPYONE_DEVICE_H
 
 #include <stdexcept>
 #include <iostream>
@@ -8,12 +8,12 @@
 #include <optional>
 #include <vector>
 
-#include <lime/LimeSuite.h>
+#include <libairspy/airspy.h>
 
-#include "samurai/base/device.h"
-#include "samurai/limesdr/channel.h"
+#include "samurai/base/device.hpp"
+#include "samurai/airspy/channel.hpp"
 
-namespace Samurai::LimeSDR {
+namespace Samurai::Airspy {
 
 class Device : public Samurai::Device {
     public:
@@ -39,14 +39,14 @@ class Device : public Samurai::Device {
         bool enabled;
         Config config;
         uint n_channels[8] = {};
-        lms_device_t* device = nullptr;
+        struct airspy_device *device;
 
         std::vector<std::shared_ptr<Channel>> channels;
 
         Channel::State getChannelState(ChannelId);
 };
 
-} // namespace Samurai::LimeSDR
+} // namespace Samurai::Airspy
 
 #endif
 

@@ -1,6 +1,6 @@
-#include "py_channel.h"
-#include "py_device.h"
-#include "py_types.h"
+#include "py_channel.hpp"
+#include "py_device.hpp"
+#include "py_types.hpp"
 
 #include <pybind11/pybind11.h>
 

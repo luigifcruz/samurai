@@ -1,4 +1,4 @@
-#include <samurai/samurai.h>
+#include <samurai/samurai.hpp>
 
 #include <pybind11/pybind11.h>
 
@@ -26,7 +26,9 @@ inline void init_types_result(py::module &m) {
         .value("ERROR_FAILED_TO_FIND_DEVICE", Result::ERROR_FAILED_TO_FIND_DEVICE)
         .value("ERROR_MAX_NUMBER_OF_CHANNELS_REACHED", Result::ERROR_MAX_NUMBER_OF_CHANNELS_REACHED)
         .value("ERROR_CHANNEL_NOT_READY", Result::ERROR_CHANNEL_NOT_READY)
-        .value("ERROR_DEVICE_NOT_READY", Result::ERROR_DEVICE_NOT_READY);
+        .value("ERROR_DEVICE_NOT_READY", Result::ERROR_DEVICE_NOT_READY)
+        .value("ERROR_CANT_ALLOCATE_MEMORY", Result::ERROR_CANT_ALLOCATE_MEMORY)
+        .value("ERROR_FORMAT_NOT_SUPPORTED", Result::ERROR_FORMAT_NOT_SUPPORTED);
 }
 
 inline void init_types_format(py::module &m) {
@@ -40,6 +42,9 @@ inline void init_types_deviceid(py::module &m) {
     py::enum_<DeviceId>(m, "DeviceId")
         #ifdef SAMURAI_LIMESDR_ENABLED
         .value("LimeSDR", DeviceId::LimeSDR)
+        #endif
+        #ifdef SAMURAI_AIRSPY_ENABLED
+        .value("Airspy", DeviceId::Airspy)
         #endif
         ;
 }

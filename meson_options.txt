@@ -1,2 +1,3 @@
 option('LIMESDR', type : 'boolean', value : false, description: 'Force LimeSDR Support.')
+option('AIRSPY', type : 'boolean', value : false, description: 'Force Airspy Support.')
 

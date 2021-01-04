@@ -9,6 +9,7 @@ lib_dep = []
 
 # Load Radios
 subdir('src/limesdr')
+subdir('src/airspy')
 
 # Includes
 inc = [

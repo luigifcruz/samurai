@@ -1,5 +1,12 @@
-test_exec = executable('test_lib', 'main.cc',
+cbuffer_exec = executable('test_cbuffer', 'cbuffer.cc',
                        include_directories: inc,
                        link_with: lib_samurai)
 
-test('Testing Samurai', test_exec)
+test('Circular Buffer', cbuffer_exec)
+
+lib_exec = executable('test_lib', 'radio.cc',
+                       include_directories: inc,
+                       link_with: lib_samurai)
+
+test('Radio Library', lib_exec)
+
