@@ -29,7 +29,7 @@ Result Channel::Update(State s, bool force) {
     }
 
     if (s.frequency != state.frequency || force) {
-        LMS_SetLOFrequency(fdn.device, getMode(config.mode), fdn.index, state.frequency);
+        LMS_SetLOFrequency(fdn.device, getMode(config.mode), fdn.index, s.frequency);
     }
 
     if (s.manualGain != state.manualGain || force) {

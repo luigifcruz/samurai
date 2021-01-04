@@ -11,6 +11,7 @@ Channel::Channel(void* fdn_ptr, Config cfg) {
 
 Channel::~Channel() {
     StopStream();
+    DestroyStream();
 }
 
 Result Channel::Update(State s, bool force) {
@@ -26,7 +27,7 @@ Result Channel::Update(State s, bool force) {
     }
 
     if (s.frequency != state.frequency || force) {
-        if (airspy_set_freq(fdn.device, static_cast<uint32_t>(state.frequency)) != AIRSPY_SUCCESS) {
+        if (airspy_set_freq(fdn.device, static_cast<uint32_t>(s.frequency)) != AIRSPY_SUCCESS) {
             return Result::ERROR_FAILED_TO_CONFIGURE_DEVICE;
         }
     }
@@ -35,8 +36,11 @@ Result Channel::Update(State s, bool force) {
 
     }
 
-    sleep(1);
-    this->cb->Reset();
+    if (stream.running)
+        usleep(15000);
+
+    if (stream.created)
+        this->cb->Reset();
 
     this->configured = true;
     this->state = s;
@@ -48,14 +52,11 @@ Result Channel::ReadStream(void* buffer, size_t size, uint timeout_ms) {
     if (!stream.created || !stream.running)
         return Result::ERROR_CHANNEL_NOT_READY;
 
-    if (cb->Capacity() < size*2)
-        return Result::ERROR;
+    auto result = Result::SUCCESS;
 
-    while(cb->Occupancy() < size*2) usleep(1000);
+    result = cb->Get((float*)buffer, size * 2);
 
-    cb->Get((float*)buffer, size*2);
-
-    return Result::SUCCESS;
+    return result;
 }
 
 Result Channel::WriteStream(void* buffer, size_t size, uint timeout_ms) {
@@ -66,7 +67,12 @@ Result Channel::WriteStream(void* buffer, size_t size, uint timeout_ms) {
 
 int Channel::readStream(airspy_transfer_t* transfer) {
     Channel* ctx = (Channel*)transfer->ctx;
-    ctx->cb->Put((float*)transfer->samples, transfer->sample_count*2);
+    size_t size = transfer->sample_count * 2;
+
+    if (ctx->cb->Put((float*)transfer->samples, size) != Result::SUCCESS) {
+        return -1;
+    }
+
     return 0;
 }
 
@@ -80,8 +86,6 @@ Result Channel::SetupStream() {
             dtype = AIRSPY_SAMPLE_FLOAT32_IQ;
             break;
         case Format::I16:
-            dtype = AIRSPY_SAMPLE_INT16_IQ;
-            break;
         case Format::I12:
             return Result::ERROR_FORMAT_NOT_SUPPORTED;
     }
@@ -90,7 +94,7 @@ Result Channel::SetupStream() {
         return Result::ERROR_FORMAT_NOT_SUPPORTED;
     }
 
-    cb = new CircularBuffer<float>(1024*1024*2);
+    cb = std::make_unique<CircularBuffer<float>>(1024*1024*2);
 
     stream.created = true;
     return Result::SUCCESS;
@@ -99,6 +103,8 @@ Result Channel::SetupStream() {
 Result Channel::DestroyStream() {
     if (!stream.created || stream.running)
         return Result::ERROR_CHANNEL_NOT_READY;
+
+    cb.reset();
 
     stream.created = false;
     return Result::SUCCESS;
@@ -112,7 +118,6 @@ Result Channel::StartStream() {
     if (result != AIRSPY_SUCCESS) {
         return Result::ERROR_DEVICE_API;
     }
-
 
     stream.running = true;
     return Result::SUCCESS;

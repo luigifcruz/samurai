@@ -1,5 +1,7 @@
 #include "samurai/cbuffer.hpp"
 
+using namespace std::chrono_literals;
+
 namespace Samurai {
 
 template<class T>
@@ -10,67 +12,78 @@ CircularBuffer<T>::CircularBuffer(size_t capacity) : capacity(capacity) {
 
 template<class T>
 CircularBuffer<T>::~CircularBuffer() {
+    semaphore.notify_all();
+    io_mtx.lock();
     buffer.reset();
 }
 
 template<class T>
 Result CircularBuffer<T>::Get(T* buf, size_t size) {
     if (Capacity() < size) {
-        return Result::ERROR;
+        return Result::ERROR_BEYOND_CAPACITY;
     }
 
-    if (IsEmpty()) {
-        return Result::ERROR;
+    std::unique_lock<std::mutex> sync(sync_mtx);
+    while (Occupancy() < size) {
+        if (semaphore.wait_for(sync, 5s) == std::cv_status::timeout)
+            return Result::ERROR_TIMEOUT;
     }
 
-    mtx.lock();
+    {
+        const std::lock_guard<std::mutex> lock(io_mtx);
 
-    size_t stage_a = MIN(size, Capacity() - head);
-    size_t stage_b = (stage_a < size) ? size - stage_a : 0;
+        size_t stage_a = MIN(size, Capacity() - head);
+        size_t stage_b = (stage_a < size) ? size - stage_a : 0;
 
-    std::copy_n(buffer.get() + head, stage_a, buf);
-    std::copy_n(buffer.get(), stage_b, buf + stage_a);
+        std::copy_n(buffer.get() + head, stage_a, buf);
+        std::copy_n(buffer.get(), stage_b, buf + stage_a);
 
-    head = (head + size) % Capacity();
-    occupancy -= size;
-
-    mtx.unlock();
+        head = (head + size) % Capacity();
+        occupancy -= size;
+    }
 
     return Result::SUCCESS;
 }
 
 template<class T>
 Result CircularBuffer<T>::Put(T* buf, size_t size) {
-    if (Capacity() < (size + Occupancy())) {
-        return Result::ERROR;
+    if (Capacity() < size) {
+        return Result::ERROR_BEYOND_CAPACITY;
     }
 
-    mtx.lock();
+    {
+        const std::lock_guard<std::mutex> lock(io_mtx);
 
-    size_t stage_a = MIN(size, Capacity() - tail);
-    size_t stage_b = (stage_a < size) ? size - stage_a : 0;
+        if (Capacity() < (Occupancy() + size)) {
+            printf("o");
+            occupancy = 0;
+            head = tail;
+        }
 
-    std::copy_n(buf, stage_a, buffer.get() + tail);
-    std::copy_n(buf + stage_a, stage_b, buffer.get());
+        size_t stage_a = MIN(size, Capacity() - tail);
+        size_t stage_b = (stage_a < size) ? size - stage_a : 0;
 
-    tail = (tail + size) % Capacity();
-    occupancy += size;
+        std::copy_n(buf, stage_a, buffer.get() + tail);
+        std::copy_n(buf + stage_a, stage_b, buffer.get());
 
-    mtx.unlock();
+        tail = (tail + size) % Capacity();
+        occupancy += size;
+    }
 
+    semaphore.notify_all();
     return Result::SUCCESS;
 }
 
 template<class T>
 Result CircularBuffer<T>::Reset() {
-    mtx.lock();
+    {
+        const std::lock_guard<std::mutex> lock(io_mtx);
+        this->head = 0;
+        this->tail = 0;
+        this->occupancy = 0;
+    }
 
-    this->head = 0;
-    this->tail = 0;
-    this->occupancy = 0;
-
-    mtx.unlock();
-
+    semaphore.notify_all();
     return Result::SUCCESS;
 }
 

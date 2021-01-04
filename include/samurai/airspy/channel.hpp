@@ -50,13 +50,12 @@ class Channel : public Samurai::Channel {
         Config config;
         Foundation fdn;
         Stream stream;
-        CircularBuffer<float>* cb;
-
         bool configured;
+
+        std::unique_ptr<CircularBuffer<float>> cb{};
 
         static int readStream(airspy_transfer_t*);
 };
 
 } // namespace Samurai::Airspy
-
 #endif

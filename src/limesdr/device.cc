@@ -96,7 +96,7 @@ Result Device::StartStream() {
 
     int res;
     if (( res = LMS_SetSampleRate(device, config.sampleRate, 1)) != 0) {
-        err = Result::ERROR;
+        err = Result::ERROR_SAMPLERATE_NOT_SUPPORTED;
         goto exception;
     }
 

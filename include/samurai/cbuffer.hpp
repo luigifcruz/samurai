@@ -7,11 +7,10 @@
 #include <cstring>
 #include <memory>
 #include <algorithm>
+#include <condition_variable>
+#include <chrono>
 
 namespace Samurai {
-
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
 
 template <class T>
 class CircularBuffer {
@@ -30,8 +29,11 @@ public:
     Result Reset();
 
 private:
-    std::mutex mtx;
-    std::unique_ptr<T[]> buffer;
+    std::mutex io_mtx;
+    std::mutex sync_mtx;
+    std::condition_variable semaphore;
+
+    std::unique_ptr<T[]> buffer{};
 
     size_t head;
     size_t tail;

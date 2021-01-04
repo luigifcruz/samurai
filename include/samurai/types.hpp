@@ -36,6 +36,9 @@ enum struct Result {
     ERROR_DEVICE_NOT_SUPPORTED,
     ERROR_FORMAT_NOT_SUPPORTED,
     ERROR_CANT_ALLOCATE_MEMORY,
+    ERROR_TIMEOUT,
+    ERROR_BEYOND_CAPACITY,
+    ERROR_SAMPLERATE_NOT_SUPPORTED,
 };
 
 enum struct Format {
@@ -58,6 +61,8 @@ typedef uint ChannelId;
         throw result; \
     } \
 }
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
 
 } // namespace Samurai
 
