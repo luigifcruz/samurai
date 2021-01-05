@@ -12,11 +12,11 @@ import sounddevice as sd
 # Demodulator Settings
 freq = 96.9e6
 tau = 75e-6
-sfs = int(6e6)
+sfs = int(2.5e6)
 mfs = int(240e3)
 afs = int(48e3)
 
-dsp_buff = 8192 * 4
+dsp_buff = 8192 * 33
 dec_out = int(np.ceil(dsp_buff/(sfs/mfs)))
 dsp_out = int(np.ceil(dec_out/(mfs/afs)))
 
@@ -40,8 +40,8 @@ ASSERT_SUCCESS(device.UpdateChannel(rx, channelState))
 
 # Queue and Shared Memory Allocation
 que = queue.Queue()
-demod = WBFM(tau, mfs, afs)
-dec = Decimator(sfs, mfs)
+demod = WBFM(tau, mfs, afs, cuda=True)
+dec = Decimator(sfs, mfs, cuda=True)
 buff = np.zeros([dsp_buff], dtype=np.complex64)
 audio_file = open("FM_{}.if32".format(int(freq)), "bw")
 

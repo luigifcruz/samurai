@@ -41,9 +41,6 @@ private:
     size_t occupancy;
 };
 
-template class CircularBuffer<char>;
-template class CircularBuffer<float>;
-
 } // namespace Samurai
 
 #endif

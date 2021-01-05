@@ -107,4 +107,7 @@ bool CircularBuffer<T>::IsFull() {
     return Occupancy() == Capacity();
 }
 
+template class CircularBuffer<char>;
+template class CircularBuffer<float>;
+
 } // namespace Samurai
