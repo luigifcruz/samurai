@@ -50,7 +50,7 @@ class Channel : public Samurai::Channel {
         Config config;
         Foundation fdn;
         Stream stream;
-        bool configured;
+        bool configured = false;
 
         std::unique_ptr<CircularBuffer<float>> cb{};
 

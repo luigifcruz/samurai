@@ -50,8 +50,7 @@ class Channel : public Samurai::Channel {
         Config config;
         Foundation fdn;
         Stream stream;
-
-        bool configured;
+        bool configured = false;
 
         bool getMode(Mode);
 };

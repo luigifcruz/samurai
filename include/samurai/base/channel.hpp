@@ -21,9 +21,9 @@ class Channel {
         };
 
         struct State {
-            float frequency = 96.9e6;
+            float frequency = 0;
             float manualGain = 0;
-            bool enableAGC = true;
+            bool enableAGC = false;
         };
 
         virtual ~Channel() = default;
