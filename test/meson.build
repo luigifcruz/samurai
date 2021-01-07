@@ -1,12 +1,17 @@
-cbuffer_exec = executable('test_cbuffer', 'cbuffer.cc',
-                       include_directories: inc,
-                       link_with: lib_samurai)
+# C++ Circular Buffer
+cpp_cbuffer_exec = executable('test_cbuffer', 'cbuffer.cc',
+                              include_directories: inc,
+                              link_with: lib_samurai)
 
-test('Circular Buffer', cbuffer_exec)
+test('C++ Circular Buffer', cpp_cbuffer_exec)
 
-lib_exec = executable('test_lib', 'radio.cc',
-                       include_directories: inc,
-                       link_with: lib_samurai)
+# C++ SDR Library
+cpp_lib_exec = executable('test_lib', 'lib.cc',
+                          include_directories: inc,
+                          link_with: lib_samurai)
 
-test('Radio Library', lib_exec)
+test('C++ SDR Library', cpp_lib_exec, is_parallel: false)
 
+# Python SDR Library
+python_lib_exec = find_program('lib.py')
+test('Python SDR Library', python_lib_exec, is_parallel: false)

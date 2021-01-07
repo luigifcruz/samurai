@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import samurai as s
 import numpy as np
 
@@ -24,3 +26,4 @@ with device:
     buffer = np.zeros(2048, dtype=np.complex64)
     ASSERT_SUCCESS(device.ReadStream(rx, buffer, 100))
     print(buffer)
+    assert(np.any(buffer))
