@@ -7,14 +7,6 @@ conf_data = configuration_data()
 lib_src = []
 lib_dep = []
 
-# Load Python
-pymod = import('python')
-py = pymod.find_installation('python3')
-
-# Load Radios
-subdir('src/limesdr')
-subdir('src/airspy')
-
 # Includes
 inc = [
   include_directories('include'),
@@ -22,8 +14,8 @@ inc = [
 ]
 
 # Gather Files
-subdir('include')
 subdir('src')
+subdir('include')
 
 # Build Projects
 subdir('python')

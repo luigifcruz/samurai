@@ -8,7 +8,8 @@
 #include <optional>
 #include <vector>
 
-#include "samurai/types.hpp"
+#include "samurai/base/types.hpp"
+#include "samurai/base/cbuffer.hpp"
 
 namespace Samurai {
 
@@ -18,6 +19,7 @@ class Channel {
             Mode mode = Mode::RX;
             Format dataFmt = Format::F32;
             bool calibrate = true;
+            size_t bufferSize = 1024 * 1024 * 2;
         };
 
         struct State {
@@ -29,18 +31,42 @@ class Channel {
         virtual ~Channel() = default;
 
         virtual Result GetFoundation(void*) = 0;
-        virtual Result GetConfig(Config*) = 0;
-        virtual Result GetState(State*) = 0;
+        Result GetConfig(Config*);
 
-        virtual Result Update(State, bool force=false) = 0;
+        Result Update(State, bool force=false);
 
-        virtual Result ReadStream(void*, size_t, uint) = 0;
-        virtual Result WriteStream(void*, size_t, uint) = 0;
+        size_t BufferOccupancy();
+        Result WaitBufferOccupancy(size_t);
 
-        virtual Result SetupStream() = 0;
-        virtual Result DestroyStream() = 0;
-        virtual Result StartStream() = 0;
-        virtual Result StopStream() = 0;
+        Result ReadStream(void*, size_t, uint);
+        Result WriteStream(void*, size_t, uint);
+
+        Result SetupStream();
+        Result DestroyStream();
+        Result StartStream();
+        Result StopStream();
+
+    protected:
+        struct Stream {
+            bool created = false;
+            bool running = false;
+        };
+
+        State state;
+        Config config;
+        Stream stream;
+        bool configured = false;
+
+        std::unique_ptr<CircularBuffer<float>> cb{};
+
+        virtual Result enable() = 0;
+        virtual Result update(State, State, bool) = 0;
+        virtual Result readStream(void*, size_t, uint) = 0;
+        virtual Result writeStream(void*, size_t, uint) = 0;
+        virtual Result setupStream() = 0;
+        virtual Result destroyStream() = 0;
+        virtual Result startStream() = 0;
+        virtual Result stopStream() = 0;
 };
 
 } // namespace Samurai

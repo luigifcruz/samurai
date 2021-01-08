@@ -5,15 +5,15 @@ import samurai as s
 import matplotlib.pyplot as plt
 from scipy import signal as sg
 from samurai import ASSERT_SUCCESS
-from mold import Mold
+from common import Mold
 
 # Manual configuration
 i_freq = int(70e6)
 f_freq = int(500e6)
 
 samplerate = int(10e6)
-n_frames = int(500e3)
-n_bframes = int(100e3)
+n_frames = int(50e3)
+n_bframes = int(10e3)
 
 # Make band plan
 if (i_freq - f_freq) % samplerate != 0:

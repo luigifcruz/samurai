@@ -1,3 +1,8 @@
+# Load Python
+pymod = import('python')
+py = pymod.find_installation('python3')
+
+# Compile Python Bindings
 py.extension_module('samurai',
                     sources: 'index.cc',
                     include_directories: inc,

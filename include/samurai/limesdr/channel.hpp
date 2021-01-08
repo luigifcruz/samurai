@@ -26,32 +26,22 @@ class Channel : public Samurai::Channel {
         ~Channel();
 
         Result GetFoundation(void*);
-        Result GetConfig(Config*);
-        Result GetState(State*);
 
-        Result Update(State, bool force=false);
+    protected:
+        Result enable();
+        Result update(State, State, bool);
 
-        Result ReadStream(void*, size_t, uint);
-        Result WriteStream(void*, size_t, uint);
+        Result readStream(void*, size_t, uint);
+        Result writeStream(void*, size_t, uint);
 
-        Result SetupStream();
-        Result DestroyStream();
-        Result StartStream();
-        Result StopStream();
+        Result setupStream();
+        Result destroyStream();
+        Result startStream();
+        Result stopStream();
 
     private:
-        struct Stream {
-            lms_stream_t data;
-            bool created = false;
-            bool running = false;
-        };
-
-        State state;
-        Config config;
         Foundation fdn;
-        Stream stream;
-        bool configured = false;
-
+        lms_stream_t stream_data;
         bool getMode(Mode);
 };
 

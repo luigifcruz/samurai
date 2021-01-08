@@ -6,10 +6,9 @@ import samurai as s
 import sounddevice as sd
 
 from samurai import ASSERT_SUCCESS
-from radio.analog import WBFM, Decimator
+from radio.analog import MFM, WBFM, Decimator
 
 # Demodulator Settings
-cuda = True
 freq = 96.9e6
 tau = 75e-6
 sfs = int(2.5e6)
@@ -34,29 +33,32 @@ rx, err = device.EnableChannel(channelConfig)
 ASSERT_SUCCESS(err)
 
 channelState = s.ChannelState()
-channelState.frequency = freq
+channelState.frequency = 96.9e6
 channelState.enableAGC = True
 ASSERT_SUCCESS(device.UpdateChannel(rx, channelState))
 
 # Queue and Shared Memory Allocation
-demod = WBFM(tau, mfs, afs, cuda=cuda)
-dec = Decimator(sfs, mfs, cuda=cuda)
+demod = MFM(tau, mfs, afs)
+dec = Decimator(sfs, mfs)
 
 # Declare the memory buffer
-if cuda:
-    import cusignal as sig
-    buff = sig.get_shared_mem(dsp_buff, dtype=np.complex64)
-else:
-    buff = np.zeros([dsp_buff], dtype=np.complex64)
-
+buff = np.zeros(dsp_buff, dtype=np.complex64)
 
 # Demodulation Function
 def process(outdata, f, t, s):
-    ASSERT_SUCCESS(device.ReadStream(rx, buff, 100))
-    outdata[:] = np.dstack(demod.run(dec.run(buff)))
+    device.ReadStream(rx, buff, 100)
+    b = demod.run(dec.run(buff))
+    outdata[:] = b.astype(np.float32).tobytes()
 
+# Start Data Collection
+device.StartStream()
+
+# Wait Buffer to Fill
+device.WaitBufferOccupancy(rx, dsp_buff * 8)
 
 # Start Collecting Data
-with sd.OutputStream(blocksize=dsp_out, callback=process,
-                     samplerate=afs, channels=2), device:
+with sd.RawOutputStream(blocksize=dsp_out, dtype=np.float32, callback=process,
+                     samplerate=afs, channels=1):
     input()
+
+device.StopStream()

@@ -7,11 +7,12 @@
 #include <functional>
 #include <optional>
 #include <vector>
+#include <unistd.h>
 
 #include <libairspy/airspy.h>
 
 #include "samurai/base/channel.hpp"
-#include "samurai/cbuffer.hpp"
+#include "samurai/base/cbuffer.hpp"
 
 namespace Samurai::Airspy {
 
@@ -27,34 +28,22 @@ class Channel : public Samurai::Channel {
         ~Channel();
 
         Result GetFoundation(void*);
-        Result GetConfig(Config*);
-        Result GetState(State*);
 
-        Result Update(State, bool force=false);
+    protected:
+        Result enable();
+        Result update(State, State, bool);
 
-        Result ReadStream(void*, size_t, uint);
-        Result WriteStream(void*, size_t, uint);
+        Result readStream(void*, size_t, uint);
+        Result writeStream(void*, size_t, uint);
 
-        Result SetupStream();
-        Result DestroyStream();
-        Result StartStream();
-        Result StopStream();
+        Result setupStream();
+        Result destroyStream();
+        Result startStream();
+        Result stopStream();
 
     private:
-        struct Stream {
-            bool created = false;
-            bool running = false;
-        };
-
-        State state;
-        Config config;
         Foundation fdn;
-        Stream stream;
-        bool configured = false;
-
-        std::unique_ptr<CircularBuffer<float>> cb{};
-
-        static int readStream(airspy_transfer_t*);
+        static int readCallback(airspy_transfer_t*);
 };
 
 } // namespace Samurai::Airspy

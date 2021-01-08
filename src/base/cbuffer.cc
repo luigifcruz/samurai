@@ -1,4 +1,4 @@
-#include "samurai/cbuffer.hpp"
+#include "samurai/base/cbuffer.hpp"
 
 using namespace std::chrono_literals;
 
@@ -18,16 +18,24 @@ CircularBuffer<T>::~CircularBuffer() {
 }
 
 template<class T>
-Result CircularBuffer<T>::Get(T* buf, size_t size) {
-    if (Capacity() < size) {
-        return Result::ERROR_BEYOND_CAPACITY;
-    }
-
+Result CircularBuffer<T>::WaitBufferOccupancy(size_t size) {
     std::unique_lock<std::mutex> sync(sync_mtx);
     while (Occupancy() < size) {
         if (semaphore.wait_for(sync, 5s) == std::cv_status::timeout)
             return Result::ERROR_TIMEOUT;
     }
+    return Result::SUCCESS;
+}
+
+template<class T>
+Result CircularBuffer<T>::Get(T* buf, size_t size) {
+    if (Capacity() < size) {
+        return Result::ERROR_BEYOND_CAPACITY;
+    }
+
+    Result res = WaitBufferOccupancy(size);
+    if (res != Result::SUCCESS)
+        goto exception;
 
     {
         const std::lock_guard<std::mutex> lock(io_mtx);
@@ -42,7 +50,8 @@ Result CircularBuffer<T>::Get(T* buf, size_t size) {
         occupancy -= size;
     }
 
-    return Result::SUCCESS;
+exception:
+    return res;
 }
 
 template<class T>

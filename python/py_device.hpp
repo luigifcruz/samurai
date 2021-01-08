@@ -19,6 +19,8 @@ inline void init_device_class(py::module &m) {
         })
         .def("UpdateChannel", &Device::UpdateChannel)
         .def("DisableChannel", &Device::DisableChannel)
+        .def("BufferOccupancy", &Device::BufferOccupancy)
+        .def("WaitBufferOccupancy", &Device::WaitBufferOccupancy)
         .def("StartStream", &Device::StartStream)
         .def("StopStream", &Device::StopStream)
         .def("GetMaxNumberOfChannels", &Device::GetMaxNumberOfChannels)
@@ -49,9 +51,7 @@ inline void init_device_class(py::module &m) {
 
 inline void init_device_config(py::module &m) {
     py::class_<Device::Config>(m, "DeviceConfig")
-        .def(py::init([]() {
-            return Device::Config{};
-        }))
+        .def(py::init<>())
         .def_readwrite("sampleRate", &Device::Config::sampleRate);
 }
 

@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-#include "samurai/types.hpp"
+#include "samurai/base/types.hpp"
 #include "samurai/base/channel.hpp"
 
 namespace Samurai {
@@ -20,21 +20,35 @@ class Device {
         };
 
         virtual ~Device() = default;
-        virtual Result Enable(Config) = 0;
-
-        virtual Result EnableChannel(Channel::Config, ChannelId*) = 0;
-        virtual Result UpdateChannel(ChannelId, Channel::State) = 0;
-        virtual Result DisableChannel(ChannelId) = 0;
-
-        virtual Result StartStream() = 0;
-        virtual Result StopStream() = 0;
-
-        virtual Result ReadStream(ChannelId, void*, size_t, uint timeout_ms = 100) = 0;
-        virtual Result WriteStream(ChannelId, void*, size_t, uint timeout_ms = 100) = 0;
-
         virtual DeviceId GetDeviceType() = 0;
-        virtual uint GetMaxNumberOfChannels(Mode) = 0;
-        virtual uint GetNumberOfChannels(Mode) = 0;
+
+        Result Enable(Config);
+
+        Result EnableChannel(Channel::Config, ChannelId*);
+        Result UpdateChannel(ChannelId, Channel::State);
+        Result DisableChannel(ChannelId);
+
+        Result StartStream();
+        Result StopStream();
+
+        Result ReadStream(ChannelId, void*, size_t, uint timeout_ms = 100);
+        Result WriteStream(ChannelId, void*, size_t, uint timeout_ms = 100);
+
+        uint GetMaxNumberOfChannels(Mode);
+        uint GetNumberOfChannels(Mode);
+
+        size_t BufferOccupancy(ChannelId);
+        Result WaitBufferOccupancy(ChannelId, size_t);
+
+    protected:
+        Config config;
+        bool enabled = false;
+        uint n_channels[8] = {};
+        std::vector<std::shared_ptr<Channel>> channels;
+
+        virtual Result enable() = 0;
+        virtual Result configure() = 0;
+        virtual Result createChannel(Channel::Config, ChannelId*) = 0;
 };
 
 } // namespace Samurai

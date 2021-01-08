@@ -1,4 +1,4 @@
-#include <samurai/cbuffer.hpp>
+#include <samurai/samurai.hpp>
 
 #include <iostream>
 

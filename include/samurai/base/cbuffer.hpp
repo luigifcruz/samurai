@@ -1,14 +1,14 @@
 #ifndef SAMURAI_CBUFFER_H
 #define SAMURAI_CBUFFER_H
 
-#include "samurai/types.hpp"
-
 #include <mutex>
 #include <cstring>
 #include <memory>
 #include <algorithm>
 #include <condition_variable>
 #include <chrono>
+
+#include "samurai/base/types.hpp"
 
 namespace Samurai {
 
@@ -27,6 +27,8 @@ public:
     Result Get(T*, size_t);
     Result Put(T*, size_t);
     Result Reset();
+
+    Result WaitBufferOccupancy(size_t);
 
 private:
     std::mutex io_mtx;

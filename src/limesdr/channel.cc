@@ -5,11 +5,6 @@ namespace Samurai::LimeSDR {
 Channel::Channel(void* fdn_ptr, Config cfg) {
     this->fdn = *(Channel::Foundation*)fdn_ptr;
     this->config = cfg;
-
-    if (LMS_EnableChannel(fdn.device, getMode(config.mode), fdn.index, true) != 0) {
-        std::cerr << "Can't enable channel." << std::endl;
-        throw Result::ERROR_FAILED_TO_CONFIGURE_DEVICE;
-    }
 }
 
 Channel::~Channel() {
@@ -21,111 +16,86 @@ Channel::~Channel() {
     }
 }
 
-Result Channel::Update(State s, bool force) {
-    force = force || !configured;
+Result Channel::enable() {
+    if (LMS_EnableChannel(fdn.device, getMode(config.mode), fdn.index, true) != 0) {
+        return Result::ERROR_FAILED_TO_CONFIGURE_DEVICE;
+    }
+    return Result::SUCCESS;
+}
 
-    if (s.enableAGC != state.enableAGC || force) {
+Result Channel::update(State ns, State os, bool force) {
+    if (ns.enableAGC != os.enableAGC || force) {
 
     }
 
-    if (s.frequency != state.frequency || force) {
-        LMS_SetLOFrequency(fdn.device, getMode(config.mode), fdn.index, s.frequency);
+    if (ns.frequency != os.frequency || force) {
+        LMS_SetLOFrequency(fdn.device, getMode(config.mode), fdn.index, ns.frequency);
     }
 
-    if (s.manualGain != state.manualGain || force) {
+    if (ns.manualGain != os.manualGain || force) {
 
     }
-
-    this->configured = true;
-    this->state = s;
 
     return Result::SUCCESS;
 }
 
-Result Channel::ReadStream(void* buffer, size_t size, uint timeout_ms) {
-    if (!stream.created || !stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
-    if (LMS_RecvStream(&stream.data, buffer, size, nullptr, timeout_ms) == -1) {
+Result Channel::readStream(void* buffer, size_t size, uint timeout_ms) {
+    if (LMS_RecvStream(&stream_data, buffer, size, nullptr, timeout_ms) == -1) {
         return Result::ERROR_DEVICE_API;
     }
-
     return Result::SUCCESS;
 }
 
-Result Channel::WriteStream(void* buffer, size_t size, uint timeout_ms) {
-    if (!stream.created || !stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
-    if (LMS_SendStream(&stream.data, buffer, size, nullptr, timeout_ms) == -1) {
+Result Channel::writeStream(void* buffer, size_t size, uint timeout_ms) {
+    if (LMS_SendStream(&stream_data, buffer, size, nullptr, timeout_ms) == -1) {
         return Result::ERROR_DEVICE_API;
     }
-
     return Result::SUCCESS;
 }
 
-Result Channel::SetupStream() {
-    if (stream.created || stream.running || !configured)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
-    stream.data.channel = fdn.index;
-    stream.data.fifoSize = 1024*1024;
-    stream.data.throughputVsLatency = 0.5;
-    stream.data.isTx = getMode(config.mode);
+Result Channel::setupStream() {
+    stream_data.channel = fdn.index;
+    stream_data.fifoSize = 1024*1024;
+    stream_data.throughputVsLatency = 0.5;
+    stream_data.isTx = getMode(config.mode);
 
     switch(config.dataFmt) {
         case Format::F32:
-            stream.data.dataFmt = lms_stream_t::LMS_FMT_F32;
+            stream_data.dataFmt = lms_stream_t::LMS_FMT_F32;
             break;
         case Format::I16:
-            stream.data.dataFmt = lms_stream_t::LMS_FMT_I16;
+            stream_data.dataFmt = lms_stream_t::LMS_FMT_I16;
             break;
         case Format::I12:
-            stream.data.dataFmt = lms_stream_t::LMS_FMT_I12;
+            stream_data.dataFmt = lms_stream_t::LMS_FMT_I12;
             break;
     }
 
-    if (LMS_SetupStream(fdn.device, &stream.data) != 0) {
+    if (LMS_SetupStream(fdn.device, &stream_data) != 0) {
         return Result::ERROR_DEVICE_API;
     }
 
-    stream.created = true;
     return Result::SUCCESS;
 }
 
-Result Channel::DestroyStream() {
-    if (!stream.created || stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
-    if (LMS_DestroyStream(fdn.device, &stream.data) != 0) {
+Result Channel::destroyStream() {
+    if (LMS_DestroyStream(fdn.device, &stream_data) != 0) {
         return Result::ERROR_DEVICE_API;
     }
-
-    stream.created = false;
     return Result::SUCCESS;
 }
 
-Result Channel::StartStream() {
-    if (!stream.created || stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
-    if (LMS_StartStream(&stream.data) != 0) {
+Result Channel::startStream() {
+    if (LMS_StartStream(&stream_data) != 0) {
         return Result::ERROR_DEVICE_API;
     }
-
-    stream.running = true;
     return Result::SUCCESS;
 }
 
-Result Channel::StopStream() {
-    if (!stream.created || !stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
-    if (LMS_StopStream(&stream.data) != 0) {
+Result Channel::stopStream() {
+    if (LMS_StopStream(&stream_data) != 0) {
         return Result::ERROR_DEVICE_API;
     }
-
-    stream.running = false;
     return Result::SUCCESS;
 }
 
@@ -140,16 +110,6 @@ bool Channel::getMode(Mode m) {
 
 Result Channel::GetFoundation(void* foundation) {
     *(Channel::Foundation*)foundation = this->fdn;
-    return Result::SUCCESS;
-}
-
-Result Channel::GetConfig(Config* config) {
-    *config = this->config;
-    return Result::SUCCESS;
-}
-
-Result Channel::GetState(State* state) {
-    *state = this->state;
     return Result::SUCCESS;
 }
 

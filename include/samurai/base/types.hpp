@@ -62,6 +62,12 @@ typedef uint ChannelId;
     } \
 }
 
+#define ASSERT_RESULT(result) { \
+    if (result != Result::SUCCESS) { \
+        goto exception; \
+    } \
+}
+
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
 } // namespace Samurai

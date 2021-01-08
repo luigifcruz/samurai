@@ -3,7 +3,8 @@
 
 #include <memory>
 
-#include "samurai/types.hpp"
+#include "samurai/base/cbuffer.hpp"
+#include "samurai/base/types.hpp"
 #include "config.hpp"
 
 #include "samurai/base/device.hpp"

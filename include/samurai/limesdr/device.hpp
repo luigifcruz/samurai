@@ -17,33 +17,17 @@ namespace Samurai::LimeSDR {
 
 class Device : public Samurai::Device {
     public:
-        Device();
         ~Device();
-        Result Enable(Config);
-
-        Result EnableChannel(Channel::Config, ChannelId*);
-        Result UpdateChannel(ChannelId, Channel::State);
-        Result DisableChannel(ChannelId);
-
-        Result StartStream();
-        Result StopStream();
-
-        Result ReadStream(ChannelId, void*, size_t, uint timeout_ms = 100);
-        Result WriteStream(ChannelId, void*, size_t, uint timeout_ms = 100);
 
         DeviceId GetDeviceType();
-        uint GetMaxNumberOfChannels(Mode);
-        uint GetNumberOfChannels(Mode);
 
     private:
-        bool enabled;
-        Config config;
-        uint n_channels[8] = {};
         lms_device_t* device = nullptr;
 
-        std::vector<std::shared_ptr<Channel>> channels;
-
-        Channel::State getChannelState(ChannelId);
+    protected:
+        Result enable();
+        Result configure();
+        Result createChannel(Channel::Config, ChannelId*);
 };
 
 } // namespace Samurai::LimeSDR

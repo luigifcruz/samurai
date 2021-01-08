@@ -1,4 +1,4 @@
-from kernel import Kernel
+from .kernel import Kernel
 
 
 class Mold():

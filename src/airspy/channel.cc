@@ -1,6 +1,4 @@
 #include "samurai/airspy/channel.hpp"
-#include "samurai/cbuffer.hpp"
-#include <unistd.h>
 
 namespace Samurai::Airspy {
 
@@ -14,25 +12,27 @@ Channel::~Channel() {
     DestroyStream();
 }
 
-Result Channel::Update(State s, bool force) {
-    force = force || !configured;
+Result Channel::enable() {
+    return Result::SUCCESS;
+}
 
-    if (s.enableAGC != state.enableAGC || force) {
+Result Channel::update(State ns, State os, bool force) {
+    if (ns.enableAGC != os.enableAGC || force) {
         int res = 0;
-        res += airspy_set_lna_agc(fdn.device, s.enableAGC ? 1 : 0);
-        res += airspy_set_mixer_agc(fdn.device, s.enableAGC ? 1 : 0);
+        res += airspy_set_lna_agc(fdn.device, ns.enableAGC ? 1 : 0);
+        res += airspy_set_mixer_agc(fdn.device, ns.enableAGC ? 1 : 0);
         if (res != 0) {
             return Result::ERROR_FAILED_TO_CONFIGURE_DEVICE;
         }
     }
 
-    if (s.frequency != state.frequency || force) {
-        if (airspy_set_freq(fdn.device, static_cast<uint32_t>(s.frequency)) != AIRSPY_SUCCESS) {
+    if (ns.frequency != os.frequency || force) {
+        if (airspy_set_freq(fdn.device, static_cast<uint32_t>(ns.frequency)) != AIRSPY_SUCCESS) {
             return Result::ERROR_FAILED_TO_CONFIGURE_DEVICE;
         }
     }
 
-    if ((s.manualGain != state.manualGain && !s.enableAGC) || force) {
+    if ((ns.manualGain != os.manualGain && !ns.enableAGC) || force) {
 
     }
 
@@ -42,44 +42,18 @@ Result Channel::Update(State s, bool force) {
     if (stream.created)
         this->cb->Reset();
 
-    this->configured = true;
-    this->state = s;
-
     return Result::SUCCESS;
 }
 
-Result Channel::ReadStream(void* buffer, size_t size, uint timeout_ms) {
-    if (!stream.created || !stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
-    auto result = Result::SUCCESS;
-
-    result = cb->Get((float*)buffer, size * 2);
-
-    return result;
+Result Channel::readStream(void* buffer, size_t size, uint timeout_ms) {
+    return cb->Get((float*)buffer, size * 2);
 }
 
-Result Channel::WriteStream(void* buffer, size_t size, uint timeout_ms) {
-    if (!stream.created || !stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
+Result Channel::writeStream(void* buffer, size_t size, uint timeout_ms) {
     return Result::ERROR;
 }
 
-int Channel::readStream(airspy_transfer_t* transfer) {
-    Channel* ctx = (Channel*)transfer->ctx;
-    size_t size = transfer->sample_count * 2;
-
-    if (ctx->cb->Put((float*)transfer->samples, size) != Result::SUCCESS) {
-        return -1;
-    }
-
-    return 0;
-}
-
-Result Channel::SetupStream() {
-    if (stream.created || stream.running || !configured)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
+Result Channel::setupStream() {
     enum airspy_sample_type dtype;
     switch(config.dataFmt) {
         case Format::F32:
@@ -94,44 +68,25 @@ Result Channel::SetupStream() {
         return Result::ERROR_FORMAT_NOT_SUPPORTED;
     }
 
-    cb = std::make_unique<CircularBuffer<float>>(1024*1024*2);
-
-    stream.created = true;
     return Result::SUCCESS;
 }
 
-Result Channel::DestroyStream() {
-    if (!stream.created || stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
-    cb.reset();
-
-    stream.created = false;
+Result Channel::destroyStream() {
     return Result::SUCCESS;
 }
 
-Result Channel::StartStream() {
-    if (!stream.created || stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
-    int result = airspy_start_rx(fdn.device, this->readStream, this);
+Result Channel::startStream() {
+    int result = airspy_start_rx(fdn.device, this->readCallback, this);
     if (result != AIRSPY_SUCCESS) {
         return Result::ERROR_DEVICE_API;
     }
-
-    stream.running = true;
     return Result::SUCCESS;
 }
 
-Result Channel::StopStream() {
-    if (!stream.created || !stream.running)
-        return Result::ERROR_CHANNEL_NOT_READY;
-
+Result Channel::stopStream() {
     if (airspy_stop_rx(fdn.device) != AIRSPY_SUCCESS) {
         return Result::ERROR_DEVICE_API;
     }
-
-    stream.running = false;
     return Result::SUCCESS;
 }
 
@@ -140,14 +95,15 @@ Result Channel::GetFoundation(void* foundation) {
     return Result::SUCCESS;
 }
 
-Result Channel::GetConfig(Config* config) {
-    *config = this->config;
-    return Result::SUCCESS;
-}
+int Channel::readCallback(airspy_transfer_t* transfer) {
+    Channel* ctx = (Channel*)transfer->ctx;
+    size_t size = transfer->sample_count * 2;
 
-Result Channel::GetState(State* state) {
-    *state = this->state;
-    return Result::SUCCESS;
+    if (ctx->cb->Put((float*)transfer->samples, size) != Result::SUCCESS) {
+        return -1;
+    }
+
+    return 0;
 }
 
 } // namespace Samurai::Airspy
