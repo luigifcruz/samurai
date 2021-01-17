@@ -1,0 +1,32 @@
+[
+  {
+    "directory": "/home/luigi/Sandbox/samurai/builddir",
+    "command": "em++ -Isrc/libsamurai.a.p -Isrc -I../src -Iinclude -I../include -I. -I.. -I/usr/include/libairspy/ -I/usr/include/libusb-1.0 -Xclang -fcolor-diagnostics -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wnon-virtual-dtor -std=c++17 -O3 -g -s WASM=1 -O2 -fPIC -s USE_PTHREADS=1 -MD -MQ src/libsamurai.a.p/base_cbuffer.cc.o -MF src/libsamurai.a.p/base_cbuffer.cc.o.d -o src/libsamurai.a.p/base_cbuffer.cc.o -c ../src/base/cbuffer.cc",
+    "file": "../src/base/cbuffer.cc",
+    "output": "src/libsamurai.a.p/base_cbuffer.cc.o"
+  },
+  {
+    "directory": "/home/luigi/Sandbox/samurai/builddir",
+    "command": "em++ -Isrc/libsamurai.a.p -Isrc -I../src -Iinclude -I../include -I. -I.. -I/usr/include/libairspy/ -I/usr/include/libusb-1.0 -Xclang -fcolor-diagnostics -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wnon-virtual-dtor -std=c++17 -O3 -g -s WASM=1 -O2 -fPIC -s USE_PTHREADS=1 -MD -MQ src/libsamurai.a.p/base_device.cc.o -MF src/libsamurai.a.p/base_device.cc.o.d -o src/libsamurai.a.p/base_device.cc.o -c ../src/base/device.cc",
+    "file": "../src/base/device.cc",
+    "output": "src/libsamurai.a.p/base_device.cc.o"
+  },
+  {
+    "directory": "/home/luigi/Sandbox/samurai/builddir",
+    "command": "em++ -Isrc/libsamurai.a.p -Isrc -I../src -Iinclude -I../include -I. -I.. -I/usr/include/libairspy/ -I/usr/include/libusb-1.0 -Xclang -fcolor-diagnostics -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wnon-virtual-dtor -std=c++17 -O3 -g -s WASM=1 -O2 -fPIC -s USE_PTHREADS=1 -MD -MQ src/libsamurai.a.p/base_channel.cc.o -MF src/libsamurai.a.p/base_channel.cc.o.d -o src/libsamurai.a.p/base_channel.cc.o -c ../src/base/channel.cc",
+    "file": "../src/base/channel.cc",
+    "output": "src/libsamurai.a.p/base_channel.cc.o"
+  },
+  {
+    "directory": "/home/luigi/Sandbox/samurai/builddir",
+    "command": "em++ -Isrc/libsamurai.a.p -Isrc -I../src -Iinclude -I../include -I. -I.. -I/usr/include/libairspy/ -I/usr/include/libusb-1.0 -Xclang -fcolor-diagnostics -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wnon-virtual-dtor -std=c++17 -O3 -g -s WASM=1 -O2 -fPIC -s USE_PTHREADS=1 -MD -MQ src/libsamurai.a.p/airspy_device.cc.o -MF src/libsamurai.a.p/airspy_device.cc.o.d -o src/libsamurai.a.p/airspy_device.cc.o -c ../src/airspy/device.cc",
+    "file": "../src/airspy/device.cc",
+    "output": "src/libsamurai.a.p/airspy_device.cc.o"
+  },
+  {
+    "directory": "/home/luigi/Sandbox/samurai/builddir",
+    "command": "em++ -Isrc/libsamurai.a.p -Isrc -I../src -Iinclude -I../include -I. -I.. -I/usr/include/libairspy/ -I/usr/include/libusb-1.0 -Xclang -fcolor-diagnostics -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wnon-virtual-dtor -std=c++17 -O3 -g -s WASM=1 -O2 -fPIC -s USE_PTHREADS=1 -MD -MQ src/libsamurai.a.p/airspy_channel.cc.o -MF src/libsamurai.a.p/airspy_channel.cc.o.d -o src/libsamurai.a.p/airspy_channel.cc.o -c ../src/airspy/channel.cc",
+    "file": "../src/airspy/channel.cc",
+    "output": "src/libsamurai.a.p/airspy_channel.cc.o"
+  }
+]

@@ -1,0 +1,13 @@
+[binaries]
+c = 'emcc'
+cpp = 'em++'
+ar = 'emar'
+ranlib='emranlib'
+pkgconfig=['pkg-config']
+
+[built-in options]
+c_args = ['-s', 'WASM=1', '-O2']
+c_link_args = ['-s', 'WASM=1', '-O2']
+cpp_args = ['-s', 'WASM=1', '-O2']
+cpp_link_args = ['-s', 'WASM=1', '-O2']
+default_library = 'static'
