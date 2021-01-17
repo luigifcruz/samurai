@@ -1,0 +1,1 @@
+[{"name": "threads", "version": "unknown", "compile_args": ["-s", "USE_PTHREADS=1"], "link_args": ["-s", "USE_PTHREADS=1", "-s", "PTHREAD_POOL_SIZE=4"]}, {"name": "libairspy", "version": "1.0", "compile_args": ["-I/usr/include/libairspy/", "-I/usr/include/libusb-1.0"], "link_args": ["/usr/lib/libairspy.so"]}]

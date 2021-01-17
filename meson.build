@@ -18,5 +18,7 @@ subdir('src')
 subdir('include')
 
 # Build Projects
-subdir('python')
-subdir('test')
+if not meson.is_cross_build()
+  subdir('python')
+  subdir('test')
+endif

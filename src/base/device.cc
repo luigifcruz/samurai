@@ -1,5 +1,4 @@
-#include "samurai/airspy/device.hpp"
-#include "samurai/base/types.hpp"
+#include "samurai/base/device.hpp"
 
 namespace Samurai {
 
