@@ -7,10 +7,15 @@ conf_data = configuration_data()
 lib_src = []
 lib_dep = []
 
+
+message(get_option('includedir'))
+message(get_option('prefix'))
+
 # Includes
 inc = [
+  include_directories(get_option('prefix') + '/include'),
   include_directories('include'),
-  include_directories('.')
+  include_directories('.'),
 ]
 
 # Gather Files

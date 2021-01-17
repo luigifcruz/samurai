@@ -1,7 +1,0 @@
-[options]
-prefix = /home/luigi/Sandbox/webusb-libusb/build
-libdir = lib
-
-[properties]
-cross_file = ['target/emscripten.txt']
-
