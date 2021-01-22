@@ -1,5 +1,5 @@
-#ifndef SAMURAI_AIRSPY_DEVICE_H
-#define SAMURAI_AIRSPY_DEVICE_H
+#ifndef SAMURAI_AIRSPYHF_DEVICE_H
+#define SAMURAI_AIRSPYHF_DEVICE_H
 
 #include <stdexcept>
 #include <iostream>
@@ -8,12 +8,12 @@
 #include <optional>
 #include <vector>
 
-#include <libairspy/airspy.h>
+#include <libairspyhf/airspyhf.h>
 
 #include "samurai/base/device.hpp"
-#include "samurai/airspy/channel.hpp"
+#include "samurai/airspyhf/channel.hpp"
 
-namespace Samurai::Airspy {
+namespace Samurai::AirspyHF {
 
 class Device : public Samurai::Device {
     public:
@@ -22,7 +22,7 @@ class Device : public Samurai::Device {
         DeviceId GetDeviceType();
 
     private:
-        struct airspy_device *device;
+        airspyhf_device_t *device;
 
     protected:
         Result enable();
@@ -30,7 +30,7 @@ class Device : public Samurai::Device {
         Result createChannel(Channel::Config, ChannelId*);
 };
 
-} // namespace Samurai::Airspy
+} // namespace Samurai::AirspyHF
 
 #endif
 

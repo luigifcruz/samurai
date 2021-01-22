@@ -20,6 +20,11 @@
 #include "samurai/airspy/channel.hpp"
 #endif
 
+#ifdef SAMURAI_AIRSPYHF_ENABLED
+#include "samurai/airspyhf/device.hpp"
+#include "samurai/airspyhf/channel.hpp"
+#endif
+
 namespace Samurai {
 
 inline std::vector<DeviceId> AvailableDevices = {
@@ -28,6 +33,9 @@ inline std::vector<DeviceId> AvailableDevices = {
     #endif
     #ifdef SAMURAI_AIRSPY_ENABLED
     DeviceId::Airspy,
+    #endif
+    #ifdef SAMURAI_AIRSPYHF_ENABLED
+    DeviceId::AirspyHF,
     #endif
 };
 
@@ -40,6 +48,10 @@ inline std::unique_ptr<Device> GetDeviceHandler(DeviceId device) {
     #ifdef SAMURAI_AIRSPY_ENABLED
         case DeviceId::Airspy:
             return std::make_unique<Airspy::Device>();
+    #endif
+    #ifdef SAMURAI_AIRSPYHF_ENABLED
+        case DeviceId::AirspyHF:
+            return std::make_unique<AirspyHF::Device>();
     #endif
         default:
             ASSERT_SUCCESS(Result::ERROR_DEVICE_NOT_SUPPORTED);

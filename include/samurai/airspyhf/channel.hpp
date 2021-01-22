@@ -1,5 +1,5 @@
-#ifndef SAMURAI_AIRSPY_CHANNEL_H
-#define SAMURAI_AIRSPY_CHANNEL_H
+#ifndef SAMURAI_AIRSPYHF_CHANNEL_H
+#define SAMURAI_AIRSPYHF_CHANNEL_H
 
 #include <stdexcept>
 #include <iostream>
@@ -9,19 +9,19 @@
 #include <vector>
 #include <unistd.h>
 
-#include <libairspy/airspy.h>
+#include <libairspyhf/airspyhf.h>
 
 #include "samurai/base/channel.hpp"
 #include "samurai/base/cbuffer.hpp"
 
-namespace Samurai::Airspy {
+namespace Samurai::AirspyHF {
 
 class Channel : public Samurai::Channel {
     public:
         struct Foundation {
             uint id;
             uint index;
-            airspy_device *device;
+            airspyhf_device_t *device;
         };
 
         Channel(void*, Channel::Config);
@@ -43,8 +43,8 @@ class Channel : public Samurai::Channel {
 
     private:
         Foundation fdn;
-        static int readCallback(airspy_transfer_t*);
+        static int readCallback(airspyhf_transfer_t*);
 };
 
-} // namespace Samurai::Airspy
+} // namespace Samurai::AirspyHF
 #endif
