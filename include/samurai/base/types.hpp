@@ -52,8 +52,9 @@ enum struct Format {
 };
 
 enum struct DeviceId {
-    LimeSDR = 1 << 0,
-    Airspy  = 1 << 1,
+    LimeSDR  = 1 << 0,
+    Airspy   = 1 << 1,
+    AirspyHF = 1 << 2,
 };
 
 typedef uint ChannelId;

@@ -3,10 +3,10 @@
 using namespace Samurai;
 
 int main() {
-    auto device = GetDeviceHandler(DeviceId::Airspy);
+    auto device = GetDeviceHandler(DeviceId::AirspyHF);
 
     Device::Config deviceConfig{};
-    deviceConfig.sampleRate = 10e6;
+    deviceConfig.sampleRate = 256e3;
     device->Enable(deviceConfig);
 
     ChannelId rx;
