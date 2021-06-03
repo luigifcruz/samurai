@@ -11,3 +11,8 @@ lib_samurai = library('samurai',
                       include_directories: inc,
                       dependencies: lib_dep,
                       install: true)
+
+libsamurai_dep = declare_dependency(
+    include_directories: inc,
+    link_with: lib_samurai
+)

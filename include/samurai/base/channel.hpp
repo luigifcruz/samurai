@@ -19,7 +19,7 @@ class Channel {
             Mode mode = Mode::RX;
             Format dataFmt = Format::F32;
             bool calibrate = true;
-            size_t bufferSize = 1024 * 1024 * 2;
+            size_t bufferSize = 1024 * 1024 * 8;
         };
 
         struct State {
