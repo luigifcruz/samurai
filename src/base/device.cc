@@ -144,6 +144,13 @@ size_t Device::BufferOccupancy(ChannelId id) {
     return channels.at(id)->BufferOccupancy();
 }
 
+size_t Device::BufferCapacity(ChannelId id) {
+    if (!enabled && channels.size() <= id)
+        return 0;
+
+    return channels.at(id)->BufferCapacity();
+}
+
 Result Device::WaitBufferOccupancy(ChannelId id, size_t size) {
     if (!enabled)
         return Result::ERROR_DEVICE_NOT_READY;

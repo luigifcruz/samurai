@@ -38,6 +38,7 @@ class Device {
         uint GetNumberOfChannels(Mode);
 
         size_t BufferOccupancy(ChannelId);
+        size_t BufferCapacity(ChannelId);
         Result WaitBufferOccupancy(ChannelId, size_t);
 
     protected:

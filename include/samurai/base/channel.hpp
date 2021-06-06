@@ -36,6 +36,7 @@ class Channel {
         Result Update(State, bool force=false);
 
         size_t BufferOccupancy();
+        size_t BufferCapacity();
         Result WaitBufferOccupancy(size_t);
 
         Result ReadStream(void*, size_t, uint);

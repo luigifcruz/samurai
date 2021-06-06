@@ -3,7 +3,7 @@ subdir('base')
 # Radios
 subdir('limesdr')
 subdir('airspy')
-subdir('airspyhf')
+#subdir('airspyhf')
 
 # Build Library
 lib_samurai = library('samurai',

@@ -19,6 +19,10 @@ size_t Channel::BufferOccupancy() {
     return cb->Occupancy();
 }
 
+size_t Channel::BufferCapacity() {
+    return cb->Capacity();
+}
+
 Result Channel::WaitBufferOccupancy(size_t size) {
     return cb->WaitBufferOccupancy(size);
 }
