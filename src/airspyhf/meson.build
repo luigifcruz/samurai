@@ -14,10 +14,10 @@ if all_airspyhf_deps_found
     'device.cc',
     'channel.cc',
   ])
-  message('Airspy HF Enabled: YES')
 else
   if get_option('AIRSPYHF')
     error('Airspy HF dependencies were not found.')
   endif
-  message('Airspy HF Enabled: NO')
 endif
+
+sum_lst += {'Airspy HF': all_airspyhf_deps_found}

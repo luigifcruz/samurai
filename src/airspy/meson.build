@@ -14,10 +14,10 @@ if all_airspy_deps_found
     'device.cc',
     'channel.cc',
   ])
-  message('Airspy Enabled: YES')
 else
   if get_option('AIRSPY')
     error('Airspy dependencies were not found.')
   endif
-  message('Airspy Enabled: NO')
 endif
+
+sum_lst += {'Airspy One': all_airspy_deps_found}

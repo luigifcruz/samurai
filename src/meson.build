@@ -1,9 +1,13 @@
 subdir('base')
 
-# Radios
+sum_lst = {}
+
+# SDRs
 subdir('limesdr')
 subdir('airspy')
-#subdir('airspyhf')
+subdir('airspyhf')
+
+summary(sum_lst, section: 'Supported SDRs', bool_yn: true)
 
 # Build Library
 lib_samurai = library('samurai',

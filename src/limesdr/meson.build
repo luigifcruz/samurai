@@ -14,10 +14,10 @@ if all_limesdr_deps_found
     'device.cc',
     'channel.cc',
   ])
-  message('LimeSDR Enabled: YES')
 else
   if get_option('LIMESDR')
     error('LimeSDR dependencies were not found.')
   endif
-  message('LimeSDR Enabled: NO')
 endif
+
+sum_lst += {'LimeSDR': all_limesdr_deps_found}
