@@ -21,3 +21,9 @@ libsamurai_dep = declare_dependency(
     dependencies: lib_dep,
     link_with: lib_samurai
 )
+
+pkg = import('pkgconfig')
+pkg.generate(
+  lib_samurai,
+  libraries: lib_dep,
+)

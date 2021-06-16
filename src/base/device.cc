@@ -129,7 +129,7 @@ uint Device::GetNumberOfChannels(Mode mode) {
     uint matches = 0;
     for (const auto& channel : channels) {
         Channel::Config config;
-        ASSERT_SUCCESS(channel->GetConfig(&config));
+        SAMURAI_CHECK_THROW(channel->GetConfig(&config));
         if (config.mode == mode) {
             matches += 1;
         }

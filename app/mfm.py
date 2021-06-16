@@ -5,7 +5,7 @@ import numpy as np
 import samurai as s
 import sounddevice as sd
 
-from samurai import ASSERT_SUCCESS
+from samurai import CHECK
 from radio.analog import MFM, WBFM, Decimator
 
 # Demodulator Settings
@@ -24,18 +24,18 @@ device = s.Device(s.DeviceId.Airspy)
 
 deviceConfig = s.DeviceConfig()
 deviceConfig.sampleRate = sfs
-ASSERT_SUCCESS(device.Enable(deviceConfig))
+CHECK(device.Enable(deviceConfig))
 
 channelConfig = s.ChannelConfig()
 channelConfig.mode = s.Mode.RX
 channelConfig.dataFmt = s.Format.F32
 rx, err = device.EnableChannel(channelConfig)
-ASSERT_SUCCESS(err)
+CHECK(err)
 
 channelState = s.ChannelState()
 channelState.frequency = 96.9e6
 channelState.enableAGC = True
-ASSERT_SUCCESS(device.UpdateChannel(rx, channelState))
+CHECK(device.UpdateChannel(rx, channelState))
 
 # Queue and Shared Memory Allocation
 demod = MFM(tau, mfs, afs)

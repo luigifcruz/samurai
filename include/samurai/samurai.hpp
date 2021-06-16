@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "samurai/base/cbuffer.hpp"
-#include "samurai/base/types.hpp"
+#include "samurai/base/type.hpp"
 #include "config.hpp"
 
 #include "samurai/base/device.hpp"
@@ -54,7 +54,7 @@ inline std::unique_ptr<Device> GetDeviceHandler(DeviceId device) {
             return std::make_unique<AirspyHF::Device>();
     #endif
         default:
-            ASSERT_SUCCESS(Result::ERROR_DEVICE_NOT_SUPPORTED);
+            SAMURAI_CHECK_THROW(Result::ERROR_DEVICE_NOT_SUPPORTED);
     }
 }
 

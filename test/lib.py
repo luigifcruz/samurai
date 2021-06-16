@@ -3,27 +3,27 @@
 import samurai as s
 import numpy as np
 
-from samurai import ASSERT_SUCCESS
+from samurai import CHECK
 
 device = s.Device(s.DeviceId.Airspy)
 
 deviceConfig = s.DeviceConfig()
 deviceConfig.sampleRate = 10e6
-ASSERT_SUCCESS(device.Enable(deviceConfig))
+CHECK(device.Enable(deviceConfig))
 
 channelConfig = s.ChannelConfig()
 channelConfig.mode = s.Mode.RX
 channelConfig.dataFmt = s.Format.F32
 rx, err = device.EnableChannel(channelConfig)
-ASSERT_SUCCESS(err)
+CHECK(err)
 
 channelState = s.ChannelState()
 channelState.frequency = 96.9e6
 channelState.enableAGC = True
-ASSERT_SUCCESS(device.UpdateChannel(rx, channelState))
+CHECK(device.UpdateChannel(rx, channelState))
 
 with device:
     buffer = np.zeros(2048, dtype=np.complex64)
-    ASSERT_SUCCESS(device.ReadStream(rx, buffer, 100))
+    CHECK(device.ReadStream(rx, buffer, 100))
     print(buffer)
     assert(np.any(buffer))

@@ -1,6 +1,6 @@
 #include "py_channel.hpp"
 #include "py_device.hpp"
-#include "py_types.hpp"
+#include "py_type.hpp"
 #include "py_cbuffer.hpp"
 
 #include <pybind11/pybind11.h>
@@ -8,8 +8,8 @@
 using namespace Samurai;
 
 PYBIND11_MODULE(samurai, m) {
-    m.def("ASSERT_SUCCESS", [](Result result) {
-        ASSERT_SUCCESS(result);
+    m.def("SAMURAI_CHECK_THROW", [](Result result) {
+        SAMURAI_CHECK_THROW(result);
     });
 
     init_types(m);

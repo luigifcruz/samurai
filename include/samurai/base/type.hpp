@@ -4,8 +4,6 @@
 #include <iostream>
 #include <type_traits>
 
-#include "samurai/tools/magic_enum.hpp"
-
 namespace Samurai {
 
 #ifdef __llvm__
@@ -59,13 +57,25 @@ enum struct DeviceId {
 
 typedef uint ChannelId;
 
-#define ASSERT_SUCCESS(result) { \
-    if (result != Result::SUCCESS) { \
-        std::cerr << "Samurai encountered an exception (" <<  magic_enum::enum_name(result) << ") in line " \
-            << __LINE__ << " of file " << __FILE__ << "." << std::endl; \
+void print_error(Result, const char*, int, const char*);
+
+#ifndef SAMURAI_CHECK_THROW
+#define SAMURAI_CHECK_THROW(result) { \
+    if (result != Samurai::Result::SUCCESS) { \
+        print_error(result, __PRETTY_FUNCTION__, __LINE__, __FILE__); \
         throw result; \
     } \
 }
+#endif
+
+#ifndef CHECK
+#define CHECK(result) { \
+    if (result != Samurai::Result::SUCCESS) { \
+        print_error(result, __PRETTY_FUNCTION__, __LINE__, __FILE__); \
+        return result; \
+    } \
+}
+#endif
 
 #define ASSERT_RESULT(result) { \
     if (result != Result::SUCCESS) { \

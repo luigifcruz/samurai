@@ -4,7 +4,7 @@ import samurai as s
 
 import matplotlib.pyplot as plt
 from scipy import signal as sg
-from samurai import ASSERT_SUCCESS
+from samurai import CHECK
 from common import Mold
 
 # Manual configuration
@@ -33,18 +33,18 @@ device = s.Device(s.DeviceId.Airspy)
 
 deviceConfig = s.DeviceConfig()
 deviceConfig.sampleRate = samplerate
-ASSERT_SUCCESS(device.Enable(deviceConfig))
+CHECK(device.Enable(deviceConfig))
 
 channelConfig = s.ChannelConfig()
 channelConfig.mode = s.Mode.RX
 channelConfig.dataFmt = s.Format.F32
 rx, err = device.EnableChannel(channelConfig)
-ASSERT_SUCCESS(err)
+CHECK(err)
 
 channelState = s.ChannelState()
 channelState.frequency = freqs[0]
 channelState.enableAGC = True
-ASSERT_SUCCESS(device.UpdateChannel(rx, channelState))
+CHECK(device.UpdateChannel(rx, channelState))
 
 # Configure Mold
 mold = Mold(samplerate, n_frames, len(freqs))
@@ -60,12 +60,12 @@ with device:
         print(f"Tuning to {freq}. Using slot #{i}.")
 
         channelState.frequency = freq
-        ASSERT_SUCCESS(device.UpdateChannel(rx, channelState))
+        CHECK(device.UpdateChannel(rx, channelState))
 
         for offset in range(0, n_frames, n_bframes):
             start = offset
             end = offset + n_bframes
-            ASSERT_SUCCESS(device.ReadStream(rx, frame_pool[i][start:end], 1000))
+            CHECK(device.ReadStream(rx, frame_pool[i][start:end], 1000))
 
 print("Sample collection finished.")
 

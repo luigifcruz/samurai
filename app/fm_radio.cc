@@ -33,12 +33,12 @@ int main() {
     Channel::Config channelConfig{};
     channelConfig.mode = Mode::RX;
     channelConfig.dataFmt = Format::F32;
-    ASSERT_SUCCESS(device.EnableChannel(channelConfig, &rx));
+    CHECK(device.EnableChannel(channelConfig, &rx));
 
     Channel::State channelState{};
     channelState.enableAGC = true;
     channelState.frequency = freq;
-    ASSERT_SUCCESS(device.UpdateChannel(rx, channelState));
+    CHECK(device.UpdateChannel(rx, channelState));
 
     // Copy I/Q samples from SDR.
     const size_t a_len = buffer_size;
@@ -69,12 +69,12 @@ int main() {
     auto d_buf = (float*)malloc(sizeof(float) * d_len);
 
     {
-        ASSERT_SUCCESS(device.StartStream());
+        CHECK(device.StartStream());
 
         while (keepgoing) {
             unsigned int len = a_len;
 
-            ASSERT_SUCCESS(device.ReadStream(rx, a_buf, len, 1000));
+            CHECK(device.ReadStream(rx, a_buf, len, 1000));
 
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
@@ -94,7 +94,7 @@ int main() {
             std::cout << "Max allowed = " << (int)((len/output_fs)*1000) << "[ms]" << std::endl;
         }
 
-        ASSERT_SUCCESS(device.StopStream());
+        CHECK(device.StopStream());
     }
 
     msresamp_crcf_destroy(b_resamp);
