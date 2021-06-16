@@ -9,7 +9,8 @@ project(
 summary({'cpp_std': get_option('cpp_std'),
          'prefix': get_option('prefix'),
          'buildtype': get_option('buildtype'),
-        }, section: 'General')
+         'crossbuild': meson.is_cross_build(),
+        }, section: 'General', bool_yn: true)
 
 # Global Variables
 conf_data = configuration_data()
