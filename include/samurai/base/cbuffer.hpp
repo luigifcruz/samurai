@@ -7,7 +7,8 @@
 #include <algorithm>
 #include <condition_variable>
 #include <chrono>
-#include <assert.h> 
+#include <complex>
+#include <assert.h>
 
 #include "samurai/base/type.hpp"
 

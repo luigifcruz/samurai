@@ -118,5 +118,6 @@ bool CircularBuffer<T>::IsFull() {
 
 template class CircularBuffer<char>;
 template class CircularBuffer<float>;
+template class CircularBuffer<std::complex<float>>;
 
 } // namespace Samurai
